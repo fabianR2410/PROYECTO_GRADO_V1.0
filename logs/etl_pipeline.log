@@ -1467,3 +1467,73 @@ TypeError: incompatible index of inserted column with frame index
 2025-10-20 23:26:39,988 - INFO - -------------------------------------------------
 2025-10-20 23:26:39,989 - INFO - [START] PIPELINE COMPLETADO EXITOSAMENTE en 16.98 segundos
 2025-10-20 23:26:39,990 - INFO - Resumen de ejecución guardado en pipeline_summary.txt
+2025-10-20 23:50:48,604 - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-20 23:50:52,169 - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-20 23:50:52,170 - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-20 23:50:52,256 - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-20 23:50:52,289 - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-20 23:50:52,571 - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-20 23:50:52,602 - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-20 23:50:52,619 - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-20 23:50:52,620 - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-20 23:50:52,679 - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-20 23:50:52,844 - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-20 23:50:53,125 - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-20 23:50:53,497 - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-20 23:50:53,567 - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-20 23:50:53,802 - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-20 23:50:53,984 - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-20 23:50:53,986 - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-20 23:50:53,987 - INFO - Guardando archivo principal procesado...
+2025-10-20 23:51:04,399 - INFO - Archivos principales guardados: processed_covid.csv, processed_covid.csv.gz
+2025-10-20 23:51:04,399 - WARNING - La columna 'continent' no existe, no se pueden separar los datos por continente.
+2025-10-20 23:51:04,411 - INFO - Métricas de continentes guardadas en: c:\Users\Usuario\Documents\proyecto_grdo_v2\data\continent_metrics.json
+2025-10-20 23:51:04,415 - INFO - Métricas de regiones guardadas en: c:\Users\Usuario\Documents\proyecto_grdo_v2\data\region_metrics.json
+2025-10-20 23:51:04,415 - INFO - Reporte JSON guardado en: c:\Users\Usuario\Documents\proyecto_grdo_v2\data\data_quality_report.json
+2025-10-20 23:51:04,415 - INFO - Tamaño final - CSV Principal: 33.58 MB, GZ Principal: 4.87 MB
+2025-10-20 23:51:04,415 - INFO - Tamaño total de archivos por continente (GZ): 0.00 MB
+2025-10-20 23:51:04,415 - INFO - --- REPORTE DE CALIDAD DE DATOS PROCESADOS ---
+2025-10-20 23:51:04,436 - INFO - Dimensiones finales: 322339 filas x 16 columnas
+2025-10-20 23:51:04,443 - INFO - Países únicos procesados: 234
+2025-10-20 23:51:04,445 - INFO - Duplicados/filas vacías removidas: 0
+2025-10-20 23:51:04,446 - INFO - Outliers tratados (valores reemplazados): 26497
+2025-10-20 23:51:04,447 - INFO - Valores faltantes manejados (imputados/rellenados): 0
+2025-10-20 23:51:04,449 - INFO - Completitud general de datos: 88.80% (4579769 celdas no nulas de 5157424 totales)
+2025-10-20 23:51:04,450 - INFO - -------------------------------------------------
+2025-10-20 23:51:04,451 - INFO - [START] PIPELINE COMPLETADO EXITOSAMENTE en 15.81 segundos
+2025-10-20 23:51:04,452 - INFO - Resumen de ejecución guardado en pipeline_summary.txt
+2025-10-21 00:09:53,678 - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-21 00:09:57,156 - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-21 00:09:57,156 - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-21 00:09:57,256 - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-21 00:09:57,298 - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-21 00:09:57,489 - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-21 00:09:57,506 - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-21 00:09:57,514 - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-21 00:09:57,514 - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-21 00:09:57,567 - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-21 00:09:57,740 - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-21 00:09:57,991 - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-21 00:09:58,255 - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-21 00:09:58,329 - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-21 00:09:58,509 - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-21 00:09:58,671 - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-21 00:09:58,673 - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 00:09:58,674 - INFO - Guardando archivo principal procesado...
+2025-10-21 00:10:09,563 - INFO - Archivos principales guardados: processed_covid.csv, processed_covid.csv.gz
+2025-10-21 00:10:09,563 - WARNING - La columna 'continent' no existe, no se pueden separar los datos por continente.
+2025-10-21 00:10:09,563 - INFO - Métricas de continentes guardadas en: c:\Users\Usuario\Documents\proyecto_grdo_v2\data\continent_metrics.json
+2025-10-21 00:10:09,578 - INFO - Métricas de regiones guardadas en: c:\Users\Usuario\Documents\proyecto_grdo_v2\data\region_metrics.json
+2025-10-21 00:10:09,578 - INFO - Reporte JSON guardado en: c:\Users\Usuario\Documents\proyecto_grdo_v2\data\data_quality_report.json
+2025-10-21 00:10:09,578 - INFO - Tamaño final - CSV Principal: 33.58 MB, GZ Principal: 4.87 MB
+2025-10-21 00:10:09,586 - INFO - Tamaño total de archivos por continente (GZ): 0.00 MB
+2025-10-21 00:10:09,588 - INFO - --- REPORTE DE CALIDAD DE DATOS PROCESADOS ---
+2025-10-21 00:10:09,606 - INFO - Dimensiones finales: 322339 filas x 16 columnas
+2025-10-21 00:10:09,607 - INFO - Países únicos procesados: 234
+2025-10-21 00:10:09,609 - INFO - Duplicados/filas vacías removidas: 0
+2025-10-21 00:10:09,611 - INFO - Outliers tratados (valores reemplazados): 26497
+2025-10-21 00:10:09,612 - INFO - Valores faltantes manejados (imputados/rellenados): 0
+2025-10-21 00:10:09,612 - INFO - Completitud general de datos: 88.80% (4579769 celdas no nulas de 5157424 totales)
+2025-10-21 00:10:09,612 - INFO - -------------------------------------------------
+2025-10-21 00:10:09,612 - INFO - [START] PIPELINE COMPLETADO EXITOSAMENTE en 15.91 segundos
+2025-10-21 00:10:09,620 - INFO - Resumen de ejecución guardado en pipeline_summary.txt
