@@ -1,0 +1,369 @@
+# 📦 ARCHIVOS DEL PROYECTO
+
+## 📄 requirements.txt
+
+```txt
+# Pipeline ETL
+pandas>=2.0.0
+numpy>=1.24.0
+requests>=2.31.0
+
+# API REST
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.0.0
+python-multipart>=0.0.6
+
+# Dashboard
+dash>=2.14.0
+plotly>=5.17.0
+
+# Opcionales (para desarrollo)
+jupyter>=1.0.0
+ipython>=8.12.0
+```
+
+---
+
+## 📄 README.md
+
+```markdown
+# 🦠 Sistema Completo de Análisis COVID-19
+
+Sistema profesional end-to-end para análisis de datos COVID-19 con Pipeline ETL, API REST y Dashboard Interactivo.
+
+## 🎯 Características Principales
+
+### ✅ **Pipeline ETL**
+- Descarga automática de datos de Our World in Data
+- Limpieza avanzada de datos (outliers, duplicados, valores faltantes)
+- Creación de métricas calculadas (tasas, promedios móviles)
+- Validación de consistencia y calidad de datos
+- Compresión optimizada (reducción del 80%)
+
+### ✅ **API REST**
+- 15+ endpoints especializados
+- Documentación interactiva (Swagger UI + ReDoc)
+- Sistema de caché inteligente
+- Rate limiting por IP
+- Validación robusta de datos
+- Exportación CSV/JSON
+
+### ✅ **Dashboard Interactivo**
+- Mapa mundial coroplético
+- Gráficos de series temporales
+- Comparación multi-país
+- Análisis regional de Sudamérica
+- Estadísticas en tiempo real
+- Diseño profesional y responsive
+
+---
+
+## 🚀 Instalación Rápida
+
+### 1. Instalar Dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Ejecutar el Pipeline ETL (solo la primera vez)
+
+```bash
+python etl_pipeline.py
+```
+
+**Tiempo estimado:** 2-5 minutos  
+**Archivos generados:**
+- `processed_covid.csv.gz` (datos procesados)
+- `data_quality_report.json` (reporte de calidad)
+- `pipeline_summary.txt` (resumen)
+
+### 3. Iniciar la API REST
+
+```bash
+python covid_api.py
+```
+
+La API estará disponible en:
+- **API**: http://127.0.0.1:8000
+- **Documentación Swagger**: http://127.0.0.1:8000/docs
+- **Documentación ReDoc**: http://127.0.0.1:8000/redoc
+
+### 4. Iniciar el Dashboard
+
+**En otra terminal:**
+
+```bash
+python dashboard.py
+```
+
+El dashboard estará disponible en:
+- **Dashboard**: http://127.0.0.1:8050
+
+---
+
+## 📊 Estructura del Proyecto
+
+```
+proyecto_covid/
+├── etl_pipeline.py          # Pipeline de procesamiento de datos
+├── covid_api.py             # API REST con FastAPI
+├── dashboard.py             # Dashboard interactivo con Dash
+├── requirements.txt         # Dependencias del proyecto
+├── README.md               # Este archivo
+│
+├── owid-covid-data.csv     # Datos originales (descargados)
+├── processed_covid.csv.gz  # Datos procesados (generados)
+├── data_quality_report.json # Reporte de calidad
+├── pipeline_summary.txt    # Resumen del pipeline
+│
+└── logs/
+    ├── etl_pipeline.log    # Log del pipeline
+    └── api.log             # Log de la API
+```
+
+---
+
+## 🎮 Guía de Uso
+
+### **Pipeline ETL**
+
+```bash
+# Ejecutar el pipeline
+python etl_pipeline.py
+
+# El pipeline:
+# 1. Descarga datos automáticamente
+# 2. Limpia y valida los datos
+# 3. Crea métricas calculadas
+# 4. Genera archivos de salida
+```
+
+**Configuración disponible en `Config` class:**
+- `MIN_DATA_POINTS`: Mínimo de registros por país (default: 30)
+- `OUTLIER_IQR_FACTOR`: Factor para detección de outliers (default: 3.0)
+- `ROLLING_WINDOW`: Ventana para promedios móviles (default: 7 días)
+
+### **API REST**
+
+**Endpoints principales:**
+
+```bash
+# Health check
+curl http://127.0.0.1:8000/health
+
+# Lista de países
+curl http://127.0.0.1:8000/covid/countries
+
+# Resumen de un país
+curl "http://127.0.0.1:8000/covid/summary?country=Ecuador"
+
+# Serie temporal
+curl "http://127.0.0.1:8000/covid/timeseries?country=Ecuador&metric=new_cases"
+
+# Comparación de países
+curl "http://127.0.0.1:8000/covid/compare?countries=Ecuador&countries=Peru&metric=new_cases_smoothed"
+
+# Ranking global
+curl "http://127.0.0.1:8000/covid/ranking?metric=total_cases&top=10"
+
+# Análisis avanzado
+curl "http://127.0.0.1:8000/covid/analyze?country=Ecuador"
+```
+
+**Características:**
+- Caché automático (TTL: 1 hora)
+- Rate limiting: 100 req/min
+- Compresión GZip
+- Validación con Pydantic
+
+### **Dashboard**
+
+**Controles:**
+1. **País Principal**: Selecciona el país a analizar
+2. **Métrica**: Elige qué dato visualizar (casos, muertes, vacunación)
+3. **Métrica del Mapa**: Controla el mapa mundial
+4. **Comparar con**: Selecciona países para comparación
+
+**Visualizaciones:**
+1. **Tarjetas de Estadísticas**: Resumen del país seleccionado
+2. **Mapa Mundial**: Visualización global interactiva
+3. **Evolución Temporal**: Serie temporal del país
+4. **Comparación Multi-País**: Hasta 10 países simultáneamente
+5. **Análisis Regional**: Todos los países de Sudamérica
+
+**Acciones:**
+- 🔄 **Actualizar Dashboard**: Recarga todos los gráficos
+- 🌎 **Comparar Sudamérica**: Análisis regional rápido
+- 💾 **Exportar Datos**: Descarga CSV del país
+
+---
+
+## 📈 Métricas Disponibles
+
+### **Casos**
+- `new_cases` - Casos diarios reportados
+- `total_cases` - Casos acumulados
+- `new_cases_smoothed` - Promedio móvil 7 días ⭐
+- `total_cases_per_100k` - Normalizado por población
+
+### **Muertes**
+- `new_deaths` - Muertes diarias reportadas
+- `total_deaths` - Muertes acumuladas
+- `new_deaths_smoothed` - Promedio móvil 7 días ⭐
+- `total_deaths_per_100k` - Normalizado por población
+
+### **Vacunación**
+- `people_vaccinated` - Personas con ≥1 dosis
+- `people_fully_vaccinated` - Esquema completo
+- `vaccination_rate` - Porcentaje de población
+
+### **Calculadas**
+- `mortality_rate` - Tasa de letalidad (%)
+- Todas las métricas `_per_100k` para comparación justa
+
+---
+
+## 🔧 Solución de Problemas
+
+### **Error: "API no conectada"**
+
+```bash
+# Verifica que la API esté ejecutándose
+python covid_api.py
+
+# Prueba manualmente
+curl http://127.0.0.1:8000/health
+```
+
+### **Error: "Datos no disponibles"**
+
+```bash
+# Ejecuta el pipeline primero
+python etl_pipeline.py
+
+# Verifica que exista el archivo
+ls -lh processed_covid.csv.gz
+```
+
+### **Error: "ModuleNotFoundError"**
+
+```bash
+# Instala todas las dependencias
+pip install -r requirements.txt
+
+# O instala individualmente
+pip install pandas numpy requests fastapi uvicorn dash plotly
+```
+
+### **Error: "Puerto ya en uso"**
+
+```bash
+# Para la API (puerto 8000)
+# Windows
+netstat -ano | findstr :8000
+taskkill /PID <PID> /F
+
+# Linux/Mac
+lsof -ti:8000 | xargs kill -9
+
+# Para el Dashboard (puerto 8050)
+# Windows
+netstat -ano | findstr :8050
+taskkill /PID <PID> /F
+
+# Linux/Mac
+lsof -ti:8050 | xargs kill -9
+```
+
+### **Dashboard no muestra gráficos**
+
+1. Verifica que la API esté ejecutándose
+2. Abre la consola del navegador (F12)
+3. Busca errores en la pestaña "Console"
+4. Verifica la conexión en: http://127.0.0.1:8000/health
+
+---
+
+## 🎯 Casos de Uso Comunes
+
+### **Caso 1: Análisis de Ecuador**
+1. Abre el dashboard: http://127.0.0.1:8050
+2. Ecuador ya está seleccionado por defecto
+3. Observa las estadísticas superiores
+4. Cambia entre métricas para diferentes análisis
+
+### **Caso 2: Comparar con países vecinos**
+1. País Principal: "Ecuador"
+2. Comparar con: "Colombia", "Peru"
+3. Click en "Actualizar Dashboard"
+4. Observa el gráfico de comparación
+
+### **Caso 3: Análisis regional**
+1. Click en "🌎 Comparar Sudamérica"
+2. El gráfico regional se actualiza automáticamente
+3. Ecuador aparece destacado
+4. Cambia la métrica para diferentes análisis
+
+### **Caso 4: Exportar para análisis externo**
+1. Selecciona el país
+2. Click en "💾 Exportar Datos"
+3. Se descarga un CSV completo
+4. Abre en Excel, Python, R, etc.
+
+---
+
+## 📊 Datos y Fuentes
+
+**Fuente principal:** [Our World in Data](https://ourworldindata.org/coronavirus)
+
+**Dataset:**
+- 350,000+ registros
+- 234 países con datos de calidad
+- Período: 2020-01-01 hasta 2023-10-24
+- Actualización: Diaria (fuente)
+
+**Métricas incluidas:**
+- Casos y muertes (totales y nuevos)
+- Vacunación (dosis y tasas)
+- Hospitalización (UCI y general)
+- Tests y positividad
+- Datos demográficos
+- Indicadores socioeconómicos
+
+---
+
+## 🚀 Mejoras Futuras
+
+### **Corto Plazo**
+- [ ] Tests unitarios con pytest
+- [ ] CI/CD con GitHub Actions
+- [ ] Docker containerization
+- [ ] Variables de entorno (.env)
+
+### **Mediano Plazo**
+- [ ] Base de datos PostgreSQL
+- [ ] Cache distribuido con Redis
+- [ ] Autenticación JWT
+- [ ] Versionado de API
+
+### **Largo Plazo**
+- [ ] Modelos de predicción ML
+- [ ] Sistema de alertas
+- [ ] WebSockets para updates en tiempo real
+- [ ] Versión mobile (React Native)
+
+---
+
+## 📝 Licencia
+
+Este proyecto utiliza datos de [Our World in Data](https://ourworldindata.org/), que están disponibles bajo la licencia [Creative Commons BY](https://creativecommons.org/licenses/by/4.0/).
+
+---
+
+## 👨‍💻 Autor
+
+Proyecto desarrollado como sistema completo de análisis de datos COVID-19.
+
+**Stack tecnol

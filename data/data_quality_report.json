@@ -1,0 +1,17 @@
+{
+  "start_time": "2025-10-21 00:09:53.678519",
+  "end_time": null,
+  "raw_shape": [
+    350085,
+    16
+  ],
+  "processed_shape": [
+    322339,
+    16
+  ],
+  "duplicates_removed": 0,
+  "outliers_treated": 26497,
+  "missing_handled": 0,
+  "countries_filtered": 13,
+  "features_created": 6
+}

@@ -1,0 +1,19 @@
+RESUMEN PIPELINE COVID-19 ETL
+============================================================
+Estado: EXITOSO
+Inicio: 2025-10-21 00:09:53.678519
+Fin:    2025-10-21 00:10:09.588370
+Duración: 15.91 segundos
+
+--- Estadísticas Clave ---
+Datos Crudos:   350,085 filas x 16 columnas
+Datos Procesados: 322,339 filas x 16 columnas
+
+Duplicados Removidos: 0
+Outliers Tratados:    26497
+Missing Manejados:  0
+Países Filtrados:   13
+Features Creados:   6
+
+Reporte JSON detallado en: data_quality_report.json
+Log completo en: etl_pipeline.log
