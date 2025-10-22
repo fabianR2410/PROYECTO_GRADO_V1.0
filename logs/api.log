@@ -2576,3 +2576,20 @@ INFO:__main__:📅 Rango: 2020-01-01 a 2023-10-24
 2025-10-21 21:12:27,605 - __main__ - INFO - 💾 Memoria: 25.86 MB
 2025-10-21 21:12:27,677 - covid_api - INFO - ⚠️ Usando caché en memoria (no persistente)
 2025-10-21 21:12:27,678 - covid_api - INFO - 📂 Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz
+2025-10-21 21:12:28,545 - covid_api - INFO - ⚡ Índices activados
+2025-10-21 21:12:28,550 - covid_api - INFO - ✅ Métricas continentes cargadas
+2025-10-21 21:12:28,550 - covid_api - INFO - ✅ Métricas regiones cargadas
+2025-10-21 21:12:28,552 - covid_api - INFO - 🔄 Pre-calculando datos...
+2025-10-21 21:12:28,633 - covid_api - INFO - ✅ Pre-cálculos completados en 0.08s
+2025-10-21 21:12:28,633 - covid_api - INFO - ✅ Datos cargados: 322,339 registros
+2025-10-21 21:12:28,634 - covid_api - INFO - 💾 Memoria: 25.86 MB
+2025-10-21 21:12:28,646 - covid_api - INFO - ======================================================================
+2025-10-21 21:12:28,647 - covid_api - INFO - 🚀 Iniciando COVID-19 Data API v4.0.0
+2025-10-21 21:12:28,647 - covid_api - INFO - Environment: development
+2025-10-21 21:12:28,647 - covid_api - INFO - ======================================================================
+2025-10-21 21:12:28,647 - covid_api - INFO - ✅ Datos: 322,339 registros
+2025-10-21 21:12:28,647 - covid_api - INFO - 💾 Memoria: 25.86 MB
+2025-10-21 21:12:28,648 - covid_api - INFO - 🌍 Países: 234
+2025-10-21 21:12:28,648 - covid_api - INFO - ⚡ Cache: memory
+2025-10-21 21:12:28,648 - covid_api - INFO - 🔑 Auth: Disabled (dev mode)
+2025-10-21 21:12:28,648 - covid_api - INFO - ======================================================================
