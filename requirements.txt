@@ -1,21 +1,44 @@
-# requirements.txt (Versión de Producción)
+# Core dependencies
+pandas==2.1.4
+numpy==1.26.2
+requests==2.31.0
 
-# Pipeline ETL
-pandas>=2.0.0
-numpy>=1.24.0
-requests>=2.31.0
+# Configuration
+python-decouple==3.8
 
-# API REST
-fastapi>=0.104.0
-uvicorn>=0.24.0
-pydantic>=2.0.0
-python-multipart>=0.0.6
-gunicorn>=21.2.0
+# Retry logic
+tenacity==8.2.3
 
-# API Avanzada (Caché y Rate Limit)
-slowapi>=0.1.9
-fastapi-cache2[redis]>=0.2.1
+# API Framework
+fastapi==0.108.0
+uvicorn[standard]==0.25.0
+python-multipart==0.0.6
+pydantic==2.5.3
+
+# API Security & Rate Limiting
+slowapi==0.1.9
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Performance
+orjson==3.9.10
+
+# Cache (optional)
+redis==5.0.1
+
+# Monitoring (optional)
+prometheus-client==0.19.0
 
 # Dashboard
-dash>=2.14.0
-plotly>=5.17.0
+dash==2.14.2
+plotly==5.18.0
+
+# Development
+pytest==7.4.3
+pytest-cov==4.1.0
+black==23.12.1
+flake8==7.0.0
+mypy==1.7.1
+
+# Logging
+python-json-logger==2.0.7

@@ -1,5 +1,5 @@
 {
-  "start_time": "2025-10-21 00:09:53.678519",
+  "start_time": "2025-10-21T10:09:01.836726",
   "end_time": null,
   "raw_shape": [
     350085,
@@ -13,5 +13,6 @@
   "outliers_treated": 26497,
   "missing_handled": 0,
   "countries_filtered": 13,
-  "features_created": 6
+  "features_created": 6,
+  "checksum": "847a30848fde5a9ccc57b13402e44ab08e272629f0c6df5b6b1897abea25e8a9"
 }

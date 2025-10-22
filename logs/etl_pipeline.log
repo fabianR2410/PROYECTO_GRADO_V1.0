@@ -1537,3 +1537,482 @@ TypeError: incompatible index of inserted column with frame index
 2025-10-21 00:10:09,612 - INFO - -------------------------------------------------
 2025-10-21 00:10:09,612 - INFO - [START] PIPELINE COMPLETADO EXITOSAMENTE en 15.91 segundos
 2025-10-21 00:10:09,620 - INFO - Resumen de ejecución guardado en pipeline_summary.txt
+2025-10-21 07:49:31,250 - covid_etl - INFO - [CONFIG] Cargando configuración...
+2025-10-21 07:49:31,250 - covid_etl - INFO - Environment: development
+2025-10-21 07:49:31,261 - covid_etl - INFO - Data directory: c:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 07:49:31,261 - covid_etl - INFO - Log level: INFO
+2025-10-21 07:49:31,261 - covid_etl - INFO - [START] INICIANDO PIPELINE COVID-19 ETL
+2025-10-21 07:49:31,268 - covid_etl - INFO - Configuración: c:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-21 07:49:31,268 - covid_etl - INFO - [START] FASE 1: EXTRACCIÓN DE DATOS
+2025-10-21 07:49:31,574 - covid_etl - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-21 07:49:39,634 - covid_etl - INFO - [OK] Datos cargados: 350,085 filas x 16 columnas
+2025-10-21 07:49:39,643 - covid_etl - INFO - [CONFIG] FASE 2: TRANSFORMACIÓN Y LIMPIEZA
+2025-10-21 07:49:39,677 - covid_etl - INFO -   → Selección de columnas...
+2025-10-21 07:49:39,795 - covid_etl - INFO -   → Conversión de tipos...
+2025-10-21 07:49:39,903 - covid_etl - INFO -   → Eliminación de duplicados...
+2025-10-21 07:49:40,399 - covid_etl - INFO -   → Validación de valores...
+2025-10-21 07:49:40,399 - covid_etl - WARNING - Población baja: 11080 registros eliminados
+2025-10-21 07:49:40,456 - covid_etl - INFO -   → Cálculo de agregados...
+2025-10-21 07:49:40,473 - covid_etl - INFO -   → Filtrado de calidad...
+2025-10-21 07:49:40,573 - covid_etl - INFO -   → Manejo de faltantes...
+2025-10-21 07:49:41,065 - covid_etl - INFO -   → Manejo de outliers...
+2025-10-21 07:49:42,488 - covid_etl - INFO -   → Validación de consistencia...
+2025-10-21 07:49:42,616 - covid_etl - WARNING - Inconsistencia vacunación: 1248 registros corregidos
+2025-10-21 07:49:42,623 - covid_etl - INFO -   → Creación de features...
+2025-10-21 07:49:42,950 - covid_etl - INFO -   → Limpieza final...
+2025-10-21 07:49:43,197 - covid_etl - INFO - [OK] Transformación completada: 322,339 filas x 16 columnas
+2025-10-21 07:49:43,197 - covid_etl - INFO - 💾 FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 07:49:43,276 - covid_etl - INFO - Guardando datos procesados...
+2025-10-21 07:49:59,696 - covid_etl - INFO - [OK] Archivos guardados - CSV: 33.58 MB, GZ: 4.87 MB
+2025-10-21 07:49:59,709 - covid_etl - INFO - [INFO] --- REPORTE DE CALIDAD ---
+2025-10-21 07:49:59,713 - covid_etl - INFO - Dimensiones: 322,339 filas x 16 columnas
+2025-10-21 07:49:59,728 - covid_etl - INFO - Países: 234
+2025-10-21 07:49:59,729 - covid_etl - INFO - Duplicados removidos: 0
+2025-10-21 07:49:59,729 - covid_etl - INFO - Outliers tratados: 26497
+2025-10-21 07:49:59,733 - covid_etl - INFO - Missing manejados: 0
+2025-10-21 07:49:59,733 - covid_etl - INFO - Completitud: 88.80%
+2025-10-21 07:49:59,733 - covid_etl - INFO - ----------------------------
+2025-10-21 07:49:59,737 - covid_etl - INFO - [OK] PIPELINE COMPLETADO en 28.45s
+2025-10-21 07:52:33,954 - covid_etl - INFO - [CONFIG] Cargando configuración...
+2025-10-21 07:52:33,954 - covid_etl - INFO - Environment: development
+2025-10-21 07:52:33,954 - covid_etl - INFO - Data directory: c:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 07:52:33,954 - covid_etl - INFO - Log level: INFO
+2025-10-21 07:52:33,954 - covid_etl - INFO - [START] INICIANDO PIPELINE COVID-19 ETL
+2025-10-21 07:52:33,954 - covid_etl - INFO - Configuración: c:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-21 07:52:33,970 - covid_etl - INFO - [START] FASE 1: EXTRACCIÓN DE DATOS
+2025-10-21 07:52:34,083 - covid_etl - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-21 07:52:39,519 - covid_etl - INFO - [OK] Datos cargados: 350,085 filas x 16 columnas
+2025-10-21 07:52:39,519 - covid_etl - INFO - [CONFIG] FASE 2: TRANSFORMACIÓN Y LIMPIEZA
+2025-10-21 07:52:39,548 - covid_etl - INFO -   → Selección de columnas...
+2025-10-21 07:52:39,637 - covid_etl - INFO -   → Conversión de tipos...
+2025-10-21 07:52:39,692 - covid_etl - INFO -   → Eliminación de duplicados...
+2025-10-21 07:52:39,965 - covid_etl - INFO -   → Validación de valores...
+2025-10-21 07:52:39,965 - covid_etl - WARNING - Población baja: 11080 registros eliminados
+2025-10-21 07:52:39,995 - covid_etl - INFO -   → Cálculo de agregados...
+2025-10-21 07:52:40,022 - covid_etl - INFO -   → Filtrado de calidad...
+2025-10-21 07:52:40,102 - covid_etl - INFO -   → Manejo de faltantes...
+2025-10-21 07:52:40,331 - covid_etl - INFO -   → Manejo de outliers...
+2025-10-21 07:52:41,052 - covid_etl - INFO -   → Validación de consistencia...
+2025-10-21 07:52:41,147 - covid_etl - WARNING - Inconsistencia vacunación: 1248 registros corregidos
+2025-10-21 07:52:41,147 - covid_etl - INFO -   → Creación de features...
+2025-10-21 07:52:41,426 - covid_etl - INFO -   → Limpieza final...
+2025-10-21 07:52:41,597 - covid_etl - INFO - [OK] Transformación completada: 322,339 filas x 16 columnas
+2025-10-21 07:52:41,597 - covid_etl - INFO - 💾 FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 07:52:41,694 - covid_etl - INFO - Guardando datos procesados...
+2025-10-21 07:52:56,414 - covid_etl - INFO - [OK] Archivos guardados - CSV: 33.58 MB, GZ: 4.87 MB
+2025-10-21 07:52:56,414 - covid_etl - INFO - [INFO] --- REPORTE DE CALIDAD ---
+2025-10-21 07:52:56,430 - covid_etl - INFO - Dimensiones: 322,339 filas x 16 columnas
+2025-10-21 07:52:56,430 - covid_etl - INFO - Países: 234
+2025-10-21 07:52:56,430 - covid_etl - INFO - Duplicados removidos: 0
+2025-10-21 07:52:56,437 - covid_etl - INFO - Outliers tratados: 26497
+2025-10-21 07:52:56,437 - covid_etl - INFO - Missing manejados: 0
+2025-10-21 07:52:56,440 - covid_etl - INFO - Completitud: 88.80%
+2025-10-21 07:52:56,440 - covid_etl - INFO - ----------------------------
+2025-10-21 07:52:56,440 - covid_etl - INFO - [OK] PIPELINE COMPLETADO en 22.46s
+2025-10-21 07:55:51,672 - covid_etl - INFO - [CONFIG] Cargando configuración...
+2025-10-21 07:55:51,672 - covid_etl - INFO - Environment: development
+2025-10-21 07:55:51,678 - covid_etl - INFO - Data directory: c:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 07:55:51,678 - covid_etl - INFO - Log level: INFO
+2025-10-21 07:55:51,678 - covid_etl - INFO - [START] INICIANDO PIPELINE COVID-19 ETL
+2025-10-21 07:55:51,678 - covid_etl - INFO - Configuración: c:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-21 07:55:51,678 - covid_etl - INFO - [START] FASE 1: EXTRACCIÓN DE DATOS
+2025-10-21 07:55:51,761 - covid_etl - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-21 07:55:56,344 - covid_etl - INFO - [OK] Datos cargados: 350,085 filas x 16 columnas
+2025-10-21 07:55:56,348 - covid_etl - INFO - [CONFIG] FASE 2: TRANSFORMACIÓN Y LIMPIEZA
+2025-10-21 07:55:56,363 - covid_etl - INFO -   → Selección de columnas...
+2025-10-21 07:55:56,431 - covid_etl - INFO -   → Conversión de tipos...
+2025-10-21 07:55:56,479 - covid_etl - INFO -   → Eliminación de duplicados...
+2025-10-21 07:55:56,722 - covid_etl - INFO -   → Validación de valores...
+2025-10-21 07:55:56,738 - covid_etl - WARNING - Población baja: 11080 registros eliminados
+2025-10-21 07:55:56,754 - covid_etl - INFO -   → Cálculo de agregados...
+2025-10-21 07:55:56,769 - covid_etl - INFO -   → Filtrado de calidad...
+2025-10-21 07:55:56,835 - covid_etl - INFO -   → Manejo de faltantes...
+2025-10-21 07:55:57,000 - covid_etl - INFO -   → Manejo de outliers...
+2025-10-21 07:55:57,697 - covid_etl - INFO -   → Validación de consistencia...
+2025-10-21 07:55:57,768 - covid_etl - WARNING - Inconsistencia vacunación: 1248 registros corregidos
+2025-10-21 07:55:57,772 - covid_etl - INFO -   → Creación de features...
+2025-10-21 07:55:58,029 - covid_etl - INFO -   → Limpieza final...
+2025-10-21 07:55:58,248 - covid_etl - INFO - [OK] Transformación completada: 322,339 filas x 16 columnas
+2025-10-21 07:55:58,274 - covid_etl - INFO - 💾 FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 07:55:58,423 - covid_etl - INFO - Guardando datos procesados...
+2025-10-21 07:56:14,322 - covid_etl - INFO - [OK] Archivos guardados - CSV: 33.58 MB, GZ: 4.87 MB
+2025-10-21 07:56:14,322 - covid_etl - INFO - [INFO] --- REPORTE DE CALIDAD ---
+2025-10-21 07:56:14,331 - covid_etl - INFO - Dimensiones: 322,339 filas x 16 columnas
+2025-10-21 07:56:14,331 - covid_etl - INFO - Países: 234
+2025-10-21 07:56:14,331 - covid_etl - INFO - Duplicados removidos: 0
+2025-10-21 07:56:14,331 - covid_etl - INFO - Outliers tratados: 26497
+2025-10-21 07:56:14,331 - covid_etl - INFO - Missing manejados: 0
+2025-10-21 07:56:14,331 - covid_etl - INFO - Completitud: 88.80%
+2025-10-21 07:56:14,331 - covid_etl - INFO - ----------------------------
+2025-10-21 07:56:14,345 - covid_etl - INFO - [OK] PIPELINE COMPLETADO en 22.64s
+2025-10-21 07:56:16,878 - covid_etl - INFO - [CONFIG] Cargando configuración...
+2025-10-21 07:56:16,878 - covid_etl - INFO - Environment: development
+2025-10-21 07:56:16,878 - covid_etl - INFO - Data directory: c:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 07:56:16,878 - covid_etl - INFO - Log level: INFO
+2025-10-21 07:56:16,891 - covid_etl - INFO - [START] INICIANDO PIPELINE COVID-19 ETL
+2025-10-21 07:56:16,894 - covid_etl - INFO - Configuración: c:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-21 07:56:16,894 - covid_etl - INFO - [START] FASE 1: EXTRACCIÓN DE DATOS
+2025-10-21 07:56:16,994 - covid_etl - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-21 07:56:21,734 - covid_etl - INFO - [OK] Datos cargados: 350,085 filas x 16 columnas
+2025-10-21 07:56:21,739 - covid_etl - INFO - [CONFIG] FASE 2: TRANSFORMACIÓN Y LIMPIEZA
+2025-10-21 07:56:21,747 - covid_etl - INFO -   → Selección de columnas...
+2025-10-21 07:56:21,792 - covid_etl - INFO -   → Conversión de tipos...
+2025-10-21 07:56:21,839 - covid_etl - INFO -   → Eliminación de duplicados...
+2025-10-21 07:56:22,034 - covid_etl - INFO -   → Validación de valores...
+2025-10-21 07:56:22,047 - covid_etl - WARNING - Población baja: 11080 registros eliminados
+2025-10-21 07:56:22,061 - covid_etl - INFO -   → Cálculo de agregados...
+2025-10-21 07:56:22,068 - covid_etl - INFO -   → Filtrado de calidad...
+2025-10-21 07:56:22,125 - covid_etl - INFO -   → Manejo de faltantes...
+2025-10-21 07:56:22,335 - covid_etl - INFO -   → Manejo de outliers...
+2025-10-21 07:56:23,163 - covid_etl - INFO -   → Validación de consistencia...
+2025-10-21 07:56:23,237 - covid_etl - WARNING - Inconsistencia vacunación: 1248 registros corregidos
+2025-10-21 07:56:23,244 - covid_etl - INFO -   → Creación de features...
+2025-10-21 07:56:23,472 - covid_etl - INFO -   → Limpieza final...
+2025-10-21 07:56:23,724 - covid_etl - INFO - [OK] Transformación completada: 322,339 filas x 16 columnas
+2025-10-21 07:56:23,724 - covid_etl - INFO - 💾 FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 07:56:23,838 - covid_etl - INFO - Guardando datos procesados...
+2025-10-21 07:56:39,285 - covid_etl - INFO - [OK] Archivos guardados - CSV: 33.58 MB, GZ: 4.87 MB
+2025-10-21 07:56:39,285 - covid_etl - INFO - [INFO] --- REPORTE DE CALIDAD ---
+2025-10-21 07:56:39,295 - covid_etl - INFO - Dimensiones: 322,339 filas x 16 columnas
+2025-10-21 07:56:39,295 - covid_etl - INFO - Países: 234
+2025-10-21 07:56:39,295 - covid_etl - INFO - Duplicados removidos: 0
+2025-10-21 07:56:39,295 - covid_etl - INFO - Outliers tratados: 26497
+2025-10-21 07:56:39,295 - covid_etl - INFO - Missing manejados: 0
+2025-10-21 07:56:39,308 - covid_etl - INFO - Completitud: 88.80%
+2025-10-21 07:56:39,308 - covid_etl - INFO - ----------------------------
+2025-10-21 07:56:39,308 - covid_etl - INFO - [OK] PIPELINE COMPLETADO en 22.39s
+2025-10-21 08:10:11,372 - covid_etl - INFO - [CONFIG] Cargando configuración...
+2025-10-21 08:10:11,372 - covid_etl - INFO - Environment: development
+2025-10-21 08:10:11,372 - covid_etl - INFO - Data directory: c:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 08:10:11,372 - covid_etl - INFO - Log level: INFO
+2025-10-21 08:10:11,372 - covid_etl - INFO - [START] INICIANDO PIPELINE COVID-19 ETL
+2025-10-21 08:10:11,388 - covid_etl - INFO - Configuración: c:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-21 08:10:11,388 - covid_etl - INFO - [START] FASE 1: EXTRACCIÓN DE DATOS
+2025-10-21 08:10:11,552 - covid_etl - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-21 08:10:17,535 - covid_etl - INFO - [OK] Datos cargados: 350,085 filas x 16 columnas
+2025-10-21 08:10:17,535 - covid_etl - INFO - [CONFIG] FASE 2: TRANSFORMACIÓN Y LIMPIEZA
+2025-10-21 08:10:17,561 - covid_etl - INFO -   → Selección de columnas...
+2025-10-21 08:10:17,738 - covid_etl - INFO -   → Conversión de tipos...
+2025-10-21 08:10:17,800 - covid_etl - INFO -   → Eliminación de duplicados...
+2025-10-21 08:10:18,107 - covid_etl - INFO -   → Validación de valores...
+2025-10-21 08:10:18,117 - covid_etl - WARNING - Población baja: 11080 registros eliminados
+2025-10-21 08:10:18,160 - covid_etl - INFO -   → Cálculo de agregados...
+2025-10-21 08:10:18,168 - covid_etl - INFO -   → Filtrado de calidad...
+2025-10-21 08:10:18,255 - covid_etl - INFO -   → Manejo de faltantes...
+2025-10-21 08:10:18,512 - covid_etl - INFO -   → Manejo de outliers...
+2025-10-21 08:10:19,273 - covid_etl - INFO -   → Validación de consistencia...
+2025-10-21 08:10:19,350 - covid_etl - WARNING - Inconsistencia vacunación: 1248 registros corregidos
+2025-10-21 08:10:19,350 - covid_etl - INFO -   → Creación de features...
+2025-10-21 08:10:19,553 - covid_etl - INFO -   → Limpieza final...
+2025-10-21 08:10:19,705 - covid_etl - INFO - [OK] Transformación completada: 322,339 filas x 16 columnas
+2025-10-21 08:10:19,705 - covid_etl - INFO - 💾 FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 08:10:19,817 - covid_etl - INFO - Guardando datos procesados...
+2025-10-21 08:10:34,662 - covid_etl - INFO - [OK] Archivos guardados - CSV: 33.58 MB, GZ: 4.87 MB
+2025-10-21 08:10:34,662 - covid_etl - INFO - [INFO] --- REPORTE DE CALIDAD ---
+2025-10-21 08:10:34,677 - covid_etl - INFO - Dimensiones: 322,339 filas x 16 columnas
+2025-10-21 08:10:34,677 - covid_etl - INFO - Países: 234
+2025-10-21 08:10:34,677 - covid_etl - INFO - Duplicados removidos: 0
+2025-10-21 08:10:34,693 - covid_etl - INFO - Outliers tratados: 26497
+2025-10-21 08:10:34,694 - covid_etl - INFO - Missing manejados: 0
+2025-10-21 08:10:34,695 - covid_etl - INFO - Completitud: 88.80%
+2025-10-21 08:10:34,697 - covid_etl - INFO - ----------------------------
+2025-10-21 08:10:34,698 - covid_etl - INFO - [OK] PIPELINE COMPLETADO en 23.29s
+2025-10-21 08:23:15,670 - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-21 08:23:20,189 - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-21 08:23:20,193 - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-21 08:23:20,282 - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-21 08:23:20,341 - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-21 08:23:20,640 - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-21 08:23:20,678 - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-21 08:23:20,725 - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-21 08:23:20,741 - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-21 08:23:20,825 - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-21 08:23:21,073 - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-21 08:23:21,502 - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-21 08:23:21,846 - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-21 08:23:21,926 - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-21 08:23:22,174 - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-21 08:23:22,358 - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-21 08:23:22,358 - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 08:23:22,358 - INFO - Guardando archivo principal procesado...
+2025-10-21 08:23:36,901 - INFO - Archivos principales guardados: processed_covid.csv, processed_covid.csv.gz
+2025-10-21 08:23:36,901 - WARNING - La columna 'continent' no existe, no se pueden separar los datos por continente.
+2025-10-21 08:23:36,921 - INFO - Métricas de continentes guardadas en: C:\Users\Usuario\Documents\proyecto_grdo_v2\data\continent_metrics.json
+2025-10-21 08:23:36,924 - INFO - Métricas de regiones guardadas en: C:\Users\Usuario\Documents\proyecto_grdo_v2\data\region_metrics.json
+2025-10-21 08:23:36,927 - INFO - Reporte JSON guardado en: C:\Users\Usuario\Documents\proyecto_grdo_v2\data\data_quality_report.json
+2025-10-21 08:23:36,928 - INFO - Tamaño final - CSV Principal: 33.58 MB, GZ Principal: 4.87 MB
+2025-10-21 08:23:36,929 - INFO - Tamaño total de archivos por continente (GZ): 0.00 MB
+2025-10-21 08:23:36,929 - INFO - --- REPORTE DE CALIDAD DE DATOS PROCESADOS ---
+2025-10-21 08:23:36,944 - INFO - Dimensiones finales: 322339 filas x 16 columnas
+2025-10-21 08:23:36,944 - INFO - Países únicos procesados: 234
+2025-10-21 08:23:36,944 - INFO - Duplicados/filas vacías removidas: 0
+2025-10-21 08:23:36,944 - INFO - Outliers tratados (valores reemplazados): 26497
+2025-10-21 08:23:36,944 - INFO - Valores faltantes manejados (imputados/rellenados): 0
+2025-10-21 08:23:36,944 - INFO - Completitud general de datos: 88.80% (4579769 celdas no nulas de 5157424 totales)
+2025-10-21 08:23:36,948 - INFO - -------------------------------------------------
+2025-10-21 08:23:36,948 - INFO - [START] PIPELINE COMPLETADO EXITOSAMENTE en 21.26 segundos
+2025-10-21 08:23:36,948 - INFO - Resumen de ejecución guardado en pipeline_summary.txt
+2025-10-21 08:30:07,820 - covid_etl - INFO - [CONFIG] Cargando configuración...
+2025-10-21 08:30:07,820 - covid_etl - INFO - Environment: development
+2025-10-21 08:30:07,830 - covid_etl - INFO - Data directory: c:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 08:30:07,830 - covid_etl - INFO - Log level: INFO
+2025-10-21 08:30:07,836 - covid_etl - INFO - [START] INICIANDO PIPELINE COVID-19 ETL
+2025-10-21 08:30:07,836 - covid_etl - INFO - Configuración: c:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-21 08:30:07,836 - covid_etl - INFO - [START] FASE 1: EXTRACCIÓN DE DATOS
+2025-10-21 08:30:07,990 - covid_etl - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-21 08:30:12,802 - covid_etl - INFO - [OK] Datos cargados: 350,085 filas x 16 columnas
+2025-10-21 08:30:12,802 - covid_etl - INFO - [CONFIG] FASE 2: TRANSFORMACIÓN Y LIMPIEZA
+2025-10-21 08:30:12,821 - covid_etl - INFO -   → Selección de columnas...
+2025-10-21 08:30:12,892 - covid_etl - INFO -   → Conversión de tipos...
+2025-10-21 08:30:12,951 - covid_etl - INFO -   → Eliminación de duplicados...
+2025-10-21 08:30:13,308 - covid_etl - INFO -   → Validación de valores...
+2025-10-21 08:30:13,325 - covid_etl - WARNING - Población baja: 11080 registros eliminados
+2025-10-21 08:30:13,370 - covid_etl - INFO -   → Cálculo de agregados...
+2025-10-21 08:30:13,390 - covid_etl - INFO -   → Filtrado de calidad...
+2025-10-21 08:30:13,456 - covid_etl - INFO -   → Manejo de faltantes...
+2025-10-21 08:30:13,656 - covid_etl - INFO -   → Manejo de outliers...
+2025-10-21 08:30:14,274 - covid_etl - INFO -   → Validación de consistencia...
+2025-10-21 08:30:14,318 - covid_etl - WARNING - Inconsistencia vacunación: 1248 registros corregidos
+2025-10-21 08:30:14,336 - covid_etl - INFO -   → Creación de features...
+2025-10-21 08:30:14,522 - covid_etl - INFO -   → Limpieza final...
+2025-10-21 08:30:14,726 - covid_etl - INFO - [OK] Transformación completada: 322,339 filas x 16 columnas
+2025-10-21 08:30:14,726 - covid_etl - INFO - 💾 FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 08:30:14,826 - covid_etl - INFO - Guardando datos procesados...
+2025-10-21 08:30:29,757 - covid_etl - INFO - [OK] Archivos guardados - CSV: 33.58 MB, GZ: 4.87 MB
+2025-10-21 08:30:29,757 - covid_etl - INFO - [INFO] --- REPORTE DE CALIDAD ---
+2025-10-21 08:30:29,773 - covid_etl - INFO - Dimensiones: 322,339 filas x 16 columnas
+2025-10-21 08:30:29,773 - covid_etl - INFO - Países: 234
+2025-10-21 08:30:29,773 - covid_etl - INFO - Duplicados removidos: 0
+2025-10-21 08:30:29,780 - covid_etl - INFO - Outliers tratados: 26497
+2025-10-21 08:30:29,781 - covid_etl - INFO - Missing manejados: 0
+2025-10-21 08:30:29,781 - covid_etl - INFO - Completitud: 88.80%
+2025-10-21 08:30:29,784 - covid_etl - INFO - ----------------------------
+2025-10-21 08:30:29,784 - covid_etl - INFO - [OK] PIPELINE COMPLETADO en 21.92s
+2025-10-21 08:30:53,617 - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-21 08:30:57,736 - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-21 08:30:57,736 - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-21 08:30:57,818 - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-21 08:30:57,869 - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-21 08:30:58,086 - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-21 08:30:58,102 - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-21 08:30:58,127 - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-21 08:30:58,127 - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-21 08:30:58,190 - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-21 08:30:58,405 - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-21 08:30:58,770 - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-21 08:30:59,178 - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-21 08:30:59,269 - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-21 08:30:59,549 - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-21 08:30:59,737 - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-21 08:30:59,737 - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 08:30:59,737 - INFO - Guardando archivo principal procesado...
+2025-10-21 08:30:59,752 - ERROR - Error de I/O guardando archivos: [Errno 22] Invalid argument: 'C:\\Users\\Usuario\\Documents\\proyecto_grdo_v2\\data\\processed_covid.csv'
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\etl_pipeline.py", line 736, in load_data
+    self.df_processed.to_csv(
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\util\_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\generic.py", line 3989, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\io\formats\format.py", line 1014, in to_csv
+    csv_formatter.save()
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\io\formats\csvs.py", line 251, in save
+    with get_handle(
+         ^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\io\common.py", line 873, in get_handle
+    handle = open(
+             ^^^^^
+OSError: [Errno 22] Invalid argument: 'C:\\Users\\Usuario\\Documents\\proyecto_grdo_v2\\data\\processed_covid.csv'
+2025-10-21 08:30:59,752 - ERROR - [ERROR] PIPELINE FALLÓ. Revisa el log 'etl_pipeline.log' para más detalles.
+2025-10-21 08:30:59,766 - INFO - Resumen de ejecución guardado en pipeline_summary.txt
+2025-10-21 08:31:36,298 - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-21 08:31:40,540 - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-21 08:31:40,540 - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-21 08:31:40,604 - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-21 08:31:40,656 - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-21 08:31:40,897 - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-21 08:31:40,917 - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-21 08:31:40,930 - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-21 08:31:40,930 - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-21 08:31:40,992 - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-21 08:31:41,201 - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-21 08:31:41,570 - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-21 08:31:41,971 - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-21 08:31:42,052 - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-21 08:31:42,301 - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-21 08:31:42,459 - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-21 08:31:42,459 - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 08:31:42,459 - INFO - Guardando archivo principal procesado...
+2025-10-21 08:31:42,467 - ERROR - Error de I/O guardando archivos: [Errno 22] Invalid argument: 'C:\\Users\\Usuario\\Documents\\proyecto_grdo_v2\\data\\processed_covid.csv'
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\etl_pipeline.py", line 736, in load_data
+    self.df_processed.to_csv(
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\util\_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\generic.py", line 3989, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\io\formats\format.py", line 1014, in to_csv
+    csv_formatter.save()
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\io\formats\csvs.py", line 251, in save
+    with get_handle(
+         ^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\io\common.py", line 873, in get_handle
+    handle = open(
+             ^^^^^
+OSError: [Errno 22] Invalid argument: 'C:\\Users\\Usuario\\Documents\\proyecto_grdo_v2\\data\\processed_covid.csv'
+2025-10-21 08:31:42,472 - ERROR - [ERROR] PIPELINE FALLÓ. Revisa el log 'etl_pipeline.log' para más detalles.
+2025-10-21 08:31:42,475 - INFO - Resumen de ejecución guardado en pipeline_summary.txt
+2025-10-21 08:37:02,976 - covid_etl - INFO - Cargando configuración desde variables de entorno...
+2025-10-21 08:37:02,980 - covid_etl - INFO - Environment: development
+2025-10-21 08:37:02,985 - covid_etl - INFO - Directorio de datos: c:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 08:37:02,985 - covid_etl - INFO - Log level: INFO
+2025-10-21 08:37:02,985 - covid_etl - INFO - ======================================================================
+2025-10-21 08:37:02,993 - covid_etl - INFO - INICIANDO PIPELINE COVID-19 ETL
+2025-10-21 08:37:02,993 - covid_etl - INFO - Directorio base: c:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-21 08:37:02,999 - covid_etl - INFO - Directorio de datos: c:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 08:37:03,001 - covid_etl - INFO - ======================================================================
+2025-10-21 08:37:03,001 - covid_etl - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-21 08:37:03,137 - covid_etl - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-21 08:37:08,681 - covid_etl - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-21 08:37:08,690 - covid_etl - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-21 08:37:08,766 - covid_etl - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-21 08:37:08,838 - covid_etl - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-21 08:37:09,154 - covid_etl - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-21 08:37:09,186 - covid_etl - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-21 08:37:09,219 - covid_etl - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-21 08:37:09,220 - covid_etl - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-21 08:37:09,303 - covid_etl - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-21 08:37:09,563 - covid_etl - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-21 08:37:09,977 - covid_etl - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-21 08:37:10,425 - covid_etl - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-21 08:37:10,563 - covid_etl - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-21 08:37:11,014 - covid_etl - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-21 08:37:11,301 - covid_etl - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-21 08:37:11,305 - covid_etl - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 08:37:11,579 - covid_etl - INFO - Backups creados en: c:\Users\Usuario\Documents\proyecto_grdo_v2\data\backups\20251021_083711
+2025-10-21 08:37:11,587 - covid_etl - INFO - Guardando archivo principal procesado...
+2025-10-21 08:37:16,596 - covid_etl - INFO - Guardando archivo comprimido...
+2025-10-21 08:37:26,663 - covid_etl - INFO - Guardando métricas de continentes...
+2025-10-21 08:37:26,693 - covid_etl - INFO - Guardando métricas de regiones...
+2025-10-21 08:37:26,696 - covid_etl - INFO - Guardando reporte de calidad...
+2025-10-21 08:37:26,701 - covid_etl - INFO - Archivo comprimido guardado: 8.42 MB
+2025-10-21 08:37:26,701 - covid_etl - INFO - Todos los archivos guardados exitosamente
+2025-10-21 08:37:26,701 - covid_etl - INFO - ============================================================
+2025-10-21 08:37:26,709 - covid_etl - INFO - REPORTE DE CALIDAD DE DATOS
+2025-10-21 08:37:26,709 - covid_etl - INFO - ============================================================
+2025-10-21 08:37:26,729 - covid_etl - INFO - Dimensiones finales: 322,339 filas x 16 columnas
+2025-10-21 08:37:26,729 - covid_etl - INFO - Países únicos: 234
+2025-10-21 08:37:26,729 - covid_etl - INFO - Duplicados removidos: 0
+2025-10-21 08:37:26,737 - covid_etl - INFO - Outliers tratados: 26,497
+2025-10-21 08:37:26,737 - covid_etl - INFO - Valores faltantes manejados: 0
+2025-10-21 08:37:26,737 - covid_etl - INFO - Features creados: 6
+2025-10-21 08:37:26,746 - covid_etl - INFO - Completitud de datos: 88.80%
+2025-10-21 08:37:26,746 - covid_etl - INFO - ============================================================
+2025-10-21 08:37:26,754 - covid_etl - INFO - ======================================================================
+2025-10-21 08:37:26,754 - covid_etl - INFO - PIPELINE COMPLETADO EXITOSAMENTE en 23.72 segundos
+2025-10-21 08:37:26,754 - covid_etl - INFO - ======================================================================
+2025-10-21 08:37:26,762 - covid_etl - INFO - Resumen de ejecución guardado en c:\Users\Usuario\Documents\proyecto_grdo_v2\pipeline_summary.txt
+2025-10-21 08:40:04,461 - INFO - Cargando configuración desde variables de entorno...
+2025-10-21 08:40:04,461 - INFO - Environment: development
+2025-10-21 08:40:04,461 - INFO - Directorio de datos: C:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 08:40:04,461 - INFO - Log level: INFO
+2025-10-21 08:40:04,465 - INFO - ======================================================================
+2025-10-21 08:40:04,466 - INFO - INICIANDO PIPELINE COVID-19 ETL
+2025-10-21 08:40:04,467 - INFO - Directorio base: C:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-21 08:40:04,467 - INFO - Directorio de datos: C:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 08:40:04,467 - INFO - ======================================================================
+2025-10-21 08:40:04,467 - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-21 08:40:04,561 - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-21 08:40:08,855 - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-21 08:40:08,855 - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-21 08:40:08,941 - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-21 08:40:08,975 - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-21 08:40:09,211 - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-21 08:40:09,231 - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-21 08:40:09,247 - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-21 08:40:09,250 - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-21 08:40:09,308 - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-21 08:40:09,505 - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-21 08:40:09,977 - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-21 08:40:10,396 - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-21 08:40:10,511 - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-21 08:40:10,828 - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-21 08:40:11,156 - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-21 08:40:11,161 - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 08:40:11,365 - INFO - Backups creados en: C:\Users\Usuario\Documents\proyecto_grdo_v2\data\backups\20251021_084011
+2025-10-21 08:40:11,365 - INFO - Guardando archivo principal procesado...
+2025-10-21 08:40:14,938 - INFO - Guardando archivo comprimido...
+2025-10-21 08:40:23,090 - INFO - Guardando métricas de continentes...
+2025-10-21 08:40:23,105 - INFO - Guardando métricas de regiones...
+2025-10-21 08:40:23,115 - INFO - Guardando reporte de calidad...
+2025-10-21 08:40:23,119 - INFO - Archivo comprimido guardado: 8.42 MB
+2025-10-21 08:40:23,120 - INFO - Todos los archivos guardados exitosamente
+2025-10-21 08:40:23,120 - INFO - ============================================================
+2025-10-21 08:40:23,122 - INFO - REPORTE DE CALIDAD DE DATOS
+2025-10-21 08:40:23,122 - INFO - ============================================================
+2025-10-21 08:40:23,138 - INFO - Dimensiones finales: 322,339 filas x 16 columnas
+2025-10-21 08:40:23,138 - INFO - Países únicos: 234
+2025-10-21 08:40:23,140 - INFO - Duplicados removidos: 0
+2025-10-21 08:40:23,140 - INFO - Outliers tratados: 26,497
+2025-10-21 08:40:23,140 - INFO - Valores faltantes manejados: 0
+2025-10-21 08:40:23,141 - INFO - Features creados: 6
+2025-10-21 08:40:23,141 - INFO - Completitud de datos: 88.80%
+2025-10-21 08:40:23,141 - INFO - ============================================================
+2025-10-21 08:40:23,141 - INFO - ======================================================================
+2025-10-21 08:40:23,141 - INFO - PIPELINE COMPLETADO EXITOSAMENTE en 18.66 segundos
+2025-10-21 08:40:23,146 - INFO - ======================================================================
+2025-10-21 08:40:23,149 - INFO - Resumen de ejecución guardado en C:\Users\Usuario\Documents\proyecto_grdo_v2\pipeline_summary.txt
+2025-10-21 10:09:01,836 - INFO - Cargando configuración desde variables de entorno...
+2025-10-21 10:09:01,836 - INFO - Environment: development
+2025-10-21 10:09:01,836 - INFO - Directorio de datos: C:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 10:09:01,836 - INFO - Log level: INFO
+2025-10-21 10:09:01,836 - INFO - ======================================================================
+2025-10-21 10:09:01,836 - INFO - INICIANDO PIPELINE COVID-19 ETL
+2025-10-21 10:09:01,836 - INFO - Directorio base: C:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-21 10:09:01,836 - INFO - Directorio de datos: C:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-21 10:09:01,836 - INFO - ======================================================================
+2025-10-21 10:09:01,836 - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-21 10:09:01,962 - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-21 10:09:07,328 - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-21 10:09:07,328 - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-21 10:09:07,425 - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-21 10:09:07,487 - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-21 10:09:07,757 - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-21 10:09:07,780 - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-21 10:09:07,805 - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-21 10:09:07,805 - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-21 10:09:07,877 - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-21 10:09:08,140 - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-21 10:09:08,573 - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-21 10:09:08,958 - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-21 10:09:09,085 - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-21 10:09:09,361 - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-21 10:09:09,599 - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-21 10:09:09,599 - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-21 10:09:09,743 - INFO - Backups creados en: C:\Users\Usuario\Documents\proyecto_grdo_v2\data\backups\20251021_100909
+2025-10-21 10:09:09,749 - INFO - Guardando archivo principal procesado...
+2025-10-21 10:09:13,943 - INFO - Guardando archivo comprimido...
+2025-10-21 10:09:24,316 - INFO - Guardando métricas de continentes...
+2025-10-21 10:09:24,332 - INFO - Guardando métricas de regiones...
+2025-10-21 10:09:24,338 - INFO - Guardando reporte de calidad...
+2025-10-21 10:09:24,340 - INFO - Archivo comprimido guardado: 8.42 MB
+2025-10-21 10:09:24,340 - INFO - Todos los archivos guardados exitosamente
+2025-10-21 10:09:24,340 - INFO - ============================================================
+2025-10-21 10:09:24,340 - INFO - REPORTE DE CALIDAD DE DATOS
+2025-10-21 10:09:24,340 - INFO - ============================================================
+2025-10-21 10:09:24,358 - INFO - Dimensiones finales: 322,339 filas x 16 columnas
+2025-10-21 10:09:24,358 - INFO - Países únicos: 234
+2025-10-21 10:09:24,358 - INFO - Duplicados removidos: 0
+2025-10-21 10:09:24,358 - INFO - Outliers tratados: 26,497
+2025-10-21 10:09:24,360 - INFO - Valores faltantes manejados: 0
+2025-10-21 10:09:24,360 - INFO - Features creados: 6
+2025-10-21 10:09:24,363 - INFO - Completitud de datos: 88.80%
+2025-10-21 10:09:24,363 - INFO - ============================================================
+2025-10-21 10:09:24,364 - INFO - ======================================================================
+2025-10-21 10:09:24,364 - INFO - PIPELINE COMPLETADO EXITOSAMENTE en 22.50 segundos
+2025-10-21 10:09:24,365 - INFO - ======================================================================
+2025-10-21 10:09:24,366 - INFO - Resumen de ejecución guardado en C:\Users\Usuario\Documents\proyecto_grdo_v2\pipeline_summary.txt

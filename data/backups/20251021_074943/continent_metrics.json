@@ -1,0 +1,44 @@
+{
+  "Africa":{
+    "date":"2023-10-18T00:00:00.000",
+    "total_cases":13113845.0,
+    "total_deaths":259023.0,
+    "people_fully_vaccinated":460512835.0,
+    "population":1426736614.0
+  },
+  "Oceania":{
+    "date":"2023-10-18T00:00:00.000",
+    "total_cases":14499513.0,
+    "total_deaths":29911.0,
+    "people_fully_vaccinated":27965117.0,
+    "population":45038860.0
+  },
+  "Asia":{
+    "date":"2023-10-23T00:00:00.000",
+    "total_cases":300681974.0,
+    "total_deaths":1633880.0,
+    "people_fully_vaccinated":3460238176.0,
+    "population":4721383370.0
+  },
+  "Europe":{
+    "date":"2023-10-23T00:00:00.000",
+    "total_cases":249783754.0,
+    "total_deaths":2079783.0,
+    "people_fully_vaccinated":493114591.0,
+    "population":744807803.0
+  },
+  "North America":{
+    "date":"2023-10-23T00:00:00.000",
+    "total_cases":124492151.0,
+    "total_deaths":1613118.0,
+    "people_fully_vaccinated":394423676.0,
+    "population":600323657.0
+  },
+  "South America":{
+    "date":"2023-10-23T00:00:00.000",
+    "total_cases":68830317.0,
+    "total_deaths":1356419.0,
+    "people_fully_vaccinated":336920481.0,
+    "population":436816679.0
+  }
+}

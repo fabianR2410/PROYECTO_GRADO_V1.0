@@ -1,44 +1,44 @@
 {
-  "Low income":{
-    "date":"2023-10-18T00:00:00.000",
-    "total_cases":2319834.0,
-    "total_deaths":47995.0,
-    "people_fully_vaccinated":203953653.0,
-    "population":737604900.0
+  "Low income": {
+    "date": "2023-10-18T00:00:00",
+    "total_cases": 2319834.0,
+    "total_deaths": 47995.0,
+    "people_fully_vaccinated": 203953653.0,
+    "population": 737604900.0
   },
-  "Lower middle income":{
-    "date":"2023-10-23T00:00:00.000",
-    "total_cases":97423102.0,
-    "total_deaths":1339160.0,
-    "people_fully_vaccinated":2049732903.0,
-    "population":3432097300.0
+  "Lower middle income": {
+    "date": "2023-10-23T00:00:00",
+    "total_cases": 97423102.0,
+    "total_deaths": 1339160.0,
+    "people_fully_vaccinated": 2049732903.0,
+    "population": 3432097300.0
   },
-  "High income":{
-    "date":"2023-10-23T00:00:00.000",
-    "total_cases":425988398.0,
-    "total_deaths":2914272.0,
-    "people_fully_vaccinated":929160112.0,
-    "population":1250514600.0
+  "High income": {
+    "date": "2023-10-23T00:00:00",
+    "total_cases": 425988398.0,
+    "total_deaths": 2914272.0,
+    "people_fully_vaccinated": 929160112.0,
+    "population": 1250514600.0
   },
-  "European Union":{
-    "date":"2023-10-23T00:00:00.000",
-    "total_cases":184210531.0,
-    "total_deaths":1245398.0,
-    "people_fully_vaccinated":327977530.0,
-    "population":450146793.0
+  "European Union": {
+    "date": "2023-10-23T00:00:00",
+    "total_cases": 184210531.0,
+    "total_deaths": 1245398.0,
+    "people_fully_vaccinated": 327977530.0,
+    "population": 450146793.0
   },
-  "Upper middle income":{
-    "date":"2023-10-23T00:00:00.000",
-    "total_cases":244463792.0,
-    "total_deaths":2666760.0,
-    "people_fully_vaccinated":1990292859.0,
-    "population":2525921300.0
+  "Upper middle income": {
+    "date": "2023-10-23T00:00:00",
+    "total_cases": 244463792.0,
+    "total_deaths": 2666760.0,
+    "people_fully_vaccinated": 1990292859.0,
+    "population": 2525921300.0
   },
-  "World":{
-    "date":"2023-10-23T00:00:00.000",
-    "total_cases":771407061.0,
-    "total_deaths":6972139.0,
-    "people_fully_vaccinated":5173174876.0,
-    "population":7975105024.0
+  "World": {
+    "date": "2023-10-23T00:00:00",
+    "total_cases": 771407061.0,
+    "total_deaths": 6972139.0,
+    "people_fully_vaccinated": 5173174876.0,
+    "population": 7975105024.0
   }
 }
