@@ -1,8 +1,9 @@
 """
-Dashboard COVID-19 Profesional - VERSIÓN SIMPLIFICADA v6.5
-===========================================================
+Dashboard COVID-19 Profesional - VERSIÓN SIMPLIFICADA v6.6 (Corregida)
+======================================================================
 Dashboard interactivo enfocado en las 14 columnas de datos provistas.
 Se eliminó el selector de rango de fechas de la pestaña Vista General.
+La lógica de filtrado de fechas y rankings se mueve a la API.
 """
 
 import dash
@@ -77,7 +78,7 @@ class Config:
 config = Config()
 
 # ============================================================================
-# CLIENTE API (Sin cambios respecto a v6.4, mantiene lógica de fecha por si se usa después)
+# CLIENTE API (MODIFICADO PARA ENVIAR FECHAS Y TOP N)
 # ============================================================================
 class CovidAPI:
     def __init__(self, base_url: str, api_key: str = ""):
@@ -120,15 +121,29 @@ class CovidAPI:
         # --- API todavía no usa fechas, así que las ignoramos aquí ---
         return self._make_request("/covid/global")
 
+    # ========================================================================
+    # >>>>> INICIO DE MODIFICACIÓN (DASHBOARD) <<<<<
+    # ========================================================================
     @lru_cache(maxsize=20)
-    def get_map_data(self, metric: str, start_date: Optional[str] = None, end_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_map_data(self, metric: str, start_date: Optional[str] = None, end_date: Optional[str] = None, top: Optional[int] = None) -> Optional[Dict[str, Any]]:
          # --- API todavía no usa fechas, así que las ignoramos aquí ---
-        return self._make_request("/covid/map-data", params={'metric': metric})
+         params = {'metric': metric}
+         if top:
+             params['top'] = top
+         return self._make_request("/covid/map-data", params=params)
 
     @lru_cache(maxsize=20)
-    def get_country_timeseries_all(self, country: str, limit: int = 5000) -> Optional[Dict[str, Any]]:
-        logger.info(f"API Call: get_country_timeseries_all (País: {country})")
-        return self._make_request(f"/covid/country/{country}", params={'limit': limit})
+    def get_country_timeseries_all(self, country: str, start_date: Optional[str] = None, end_date: Optional[str] = None, limit: int = 5000) -> Optional[Dict[str, Any]]:
+        logger.info(f"API Call: get_country_timeseries_all (País: {country}, Rango: {start_date}-{end_date})")
+        params = {'limit': limit}
+        if start_date:
+            params['start_date'] = start_date
+        if end_date:
+            params['end_date'] = end_date
+        return self._make_request(f"/covid/country/{country}", params=params)
+    # ========================================================================
+    # >>>>> FIN DE MODIFICACIÓN (DASHBOARD) <<<<<
+    # ========================================================================
 
     def compare_countries(self, countries: List[str], metric: str, normalize: bool = False) -> Optional[Dict[str, Any]]:
         return self._make_request("/covid/compare", params={'countries': countries, 'metric': metric, 'normalize': normalize})
@@ -143,7 +158,7 @@ api = CovidAPI(config.API_BASE_URL, config.API_KEY)
 # ============================================================================
 # INICIALIZAR DASH Y LAYOUT (Sin cambios)
 # ============================================================================
-app = dash.Dash(__name__, title="Panel COVID-19 - Por País (Simple)", suppress_callback_exceptions=True)
+app = dash.Dash(__name__, title="Panel COVID-19 - TRABAJO GRADO", suppress_callback_exceptions=True)
 app.index_string = '''<!DOCTYPE html><html><head>{%metas%}<title>{%title%}</title>{%favicon%}{%css%}''' + \
                    '''<style>body{margin:0;font-family:sans-serif;} .metric-table{width:100%;border-collapse:collapse;font-size:11px;} ''' + \
                    '''.metric-table th,.metric-table td{padding:6px 8px;text-align:left;border-bottom:1px solid #f0f0f0;} .metric-table th{font-weight:600;color:#666;background:#f8f9fa;position:sticky;top:0;}''' + \
@@ -157,7 +172,7 @@ def get_card_style(padding='20px'): return {'background':config.COLORS['bg_card'
 
 app.layout = html.Div([
     html.Div([
-        html.Div([ html.H1("🌍 Panel COVID-19 - Análisis por País (Simple)", style={'fontSize':'28px','fontWeight':'700','color':config.COLORS['text_primary'],'margin':'0'}),
+        html.Div([ html.H1("🌍 Panel COVID-19 - Análisis", style={'fontSize':'28px','fontWeight':'700','color':config.COLORS['text_primary'],'margin':'0'}),
                    html.P("Datos y comparativas de COVID-19 a nivel mundial y por país", style={'fontSize':'13px','color':config.COLORS['text_secondary'],'margin':'5px 0 0 0'}) ], style={'flex':'1'}),
         html.Div([ html.Span("Cargando...", id='api-status', style={'fontSize':'11px','padding':'6px 12px','background':config.COLORS['accent_yellow'],'color':'white','borderRadius':'20px','fontWeight':'600'}) ])
     ], style={'background':config.COLORS['bg_card'],'padding':'25px 35px','borderBottom':f"3px solid {config.COLORS['accent_blue']}",'display':'flex','alignItems':'center','justifyContent':'space-between','boxShadow':'0 2px 8px rgba(0,0,0,0.05)'}),
@@ -486,25 +501,27 @@ def update_comparison_country_selector(countries_data, persisted_value):
 
 
 # ========================================================================
-# >>>>> CALLBACK MODIFICADO (SIN INPUTS DE FECHA) <<<<<
+# >>>>> INICIO DE MODIFICACIÓN (DASHBOARD) <<<<<
 # ========================================================================
 @app.callback(
     Output('global-metrics-cards','children'),
     Input('interval-component','n_intervals') # Solo depende del intervalo
 )
 def update_global_metrics(n):
+    # Solo se necesita una llamada a la API
     data = api.get_global_summary()
 
     if not data or isinstance(data, dict) and data.get("error"):
         error_msg = data.get("error", "Error desconocido") if isinstance(data, dict) else "Error desconocido"
         return html.Div(f"⚠️ No se pudieron cargar métricas globales: {error_msg}", className='warning-message')
 
-    tc=data.get('total_cases',0); td=data.get('total_deaths',0); ca=data.get('countries_affected',0)
+    # Obtener todos los valores de la única respuesta
+    tc=data.get('total_cases',0)
+    td=data.get('total_deaths',0)
+    ca=data.get('countries_affected',0)
+    tp=data.get('total_population', 0) # Obtener población desde la API
 
-    data_pop = api.get_map_data('population')
-    tp = 0
-    if data_pop and isinstance(data_pop, dict) and 'data' in data_pop:
-        tp = sum(item.get('value', 0) for item in data_pop['data'] if item and item.get('value') is not None) # Más robusto
+    # La llamada separada a get_map_data('population') se elimina
 
     return html.Div([
         html.Div([html.Div([html.Span("😷",style={'fontSize':'24px'}),html.Div([html.Div("CASOS TOTALES",className='stat-header'),html.Div(fmt(tc),className='stat-value',style={'color':config.COLORS['accent_blue']}),html.Div(f"{ca} países/territorios",className='stat-subvalue')])],style={'display':'flex','alignItems':'center','gap':'15px'})], style={**get_card_style('20px'),'flex':'1','marginRight':'15px'}),
@@ -512,7 +529,7 @@ def update_global_metrics(n):
         html.Div([html.Div([html.Span("👥",style={'fontSize':'24px'}),html.Div([html.Div("POBLACIÓN TOTAL",className='stat-header'),html.Div(fmt(tp),className='stat-value',style={'color':config.COLORS['accent_green']}),html.Div("Suma de países",className='stat-subvalue')])],style={'display':'flex','alignItems':'center','gap':'15px'})], style={**get_card_style('20px'),'flex':'1'})
     ], style={'display':'flex','marginBottom':'20px'})
 # ========================================================================
-# >>>>> FIN CALLBACK MODIFICADO <<<<<
+# >>>>> FIN DE MODIFICACIÓN (DASHBOARD) <<<<<
 # ========================================================================
 
 # ========================================================================
@@ -525,6 +542,7 @@ def update_global_metrics(n):
 def update_world_map(metric):
     if not metric: return no_update
 
+    # No se pide top=10 aquí, se quiere el mapa completo
     data = api.get_map_data(metric)
 
     if not data or isinstance(data, dict) and data.get("error"):
@@ -549,7 +567,7 @@ def update_world_map(metric):
 # ========================================================================
 
 # ========================================================================
-# >>>>> CALLBACK MODIFICADO (SIN INPUTS DE FECHA) <<<<<
+# >>>>> INICIO DE MODIFICACIÓN (DASHBOARD) <<<<<
 # ========================================================================
 @app.callback(
     Output('top-countries-chart','children'),
@@ -558,7 +576,8 @@ def update_world_map(metric):
 def update_top_countries(metric):
     if not metric: return no_update
 
-    data = api.get_map_data(metric)
+    # Pedir explícitamente el TOP 10 a la API
+    data = api.get_map_data(metric, top=10)
 
     if not data or isinstance(data, dict) and data.get("error"):
         error_msg = data.get("error", "Error desconocido") if isinstance(data, dict) else "Error desconocido"
@@ -567,26 +586,42 @@ def update_top_countries(metric):
     if 'data' not in data:
          return html.Div(f"⚠️ Respuesta inesperada de API para ranking: {data}", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
 
-    ranking_data = data['data'];
+    ranking_data = data['data']; # Esto ya es el Top 10, ordenado
     if not ranking_data: return html.Div("⚠️ Sin datos para métrica", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
 
-    df = pd.DataFrame(ranking_data);
-    if df.empty or 'value' not in df.columns:
-        return html.Div("⚠️ Datos insuficientes para generar ranking", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
-
-    df = df.dropna(subset=['value'])
-    df_sorted = df.sort_values(by='value',ascending=False);
-    top_10 = df_sorted.head(10)
-
-    if top_10.empty:
+    # Ya no se necesita Pandas para ordenar o filtrar
+    # Los datos vienen de la API como [{'country': 'USA', 'value': 100}, ...]
+    
+    if not ranking_data:
         return html.Div("⚠️ Sin datos suficientes para el Top 10", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
 
-    locations = top_10['country']; values = top_10['value']
-    fig = go.Figure([go.Bar(x=values, y=locations, orientation='h', marker=dict(color=values,colorscale='Blues',showscale=False), text=[fmt(v) for v in values], textposition='outside', hovertemplate='<b>%{y}</b><br>%{x:,.0f}<extra></extra>')])
-    fig.update_layout(margin=dict(l=150,r=50,t=20,b=40), height=400, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'], xaxis=dict(showgrid=True,gridcolor=config.COLORS['grid'],tickformat=','), yaxis=dict(showgrid=False, autorange='reversed'), font=dict(size=11))
+    # Extraer listas directamente. La API los devuelve ordenados (el más alto primero)
+    locations = [item['country'] for item in ranking_data]
+    values = [item['value'] for item in ranking_data]
+
+    fig = go.Figure([go.Bar(
+        x=values, 
+        y=locations, 
+        orientation='h', 
+        marker=dict(color=values,colorscale='Blues',showscale=False), 
+        text=[fmt(v) for v in values], 
+        textposition='outside', 
+        hovertemplate='<b>%{y}</b><br>%{x:,.0f}<extra></extra>'
+    )])
+    
+    # 'autorange': 'reversed' asegura que el primer item (el más alto) esté en la parte superior
+    fig.update_layout(
+        margin=dict(l=150,r=50,t=20,b=40), 
+        height=400, 
+        paper_bgcolor=config.COLORS['bg_card'], 
+        plot_bgcolor=config.COLORS['bg_card'], 
+        xaxis=dict(showgrid=True,gridcolor=config.COLORS['grid'],tickformat=','), 
+        yaxis=dict(showgrid=False, autorange='reversed'), 
+        font=dict(size=11)
+    )
     return dcc.Graph(figure=fig, config={'displayModeBar':False})
 # ========================================================================
-# >>>>> FIN CALLBACK MODIFICADO <<<<<
+# >>>>> FIN DE MODIFICACIÓN (DASHBOARD) <<<<<
 # ========================================================================
 
 
@@ -737,7 +772,9 @@ def update_correlations(metrics, method):
     return dcc.Graph(figure=fig_heatmap, config={'displayModeBar':False})
 
 
-# --- CALLBACK DE GRÁFICO DE LÍNEAS ---
+# ========================================================================
+# >>>>> INICIO DE MODIFICACIÓN (DASHBOARD) <<<<<
+# ========================================================================
 @app.callback(
     Output('timeseries-line-chart', 'figure'),
     [Input('ts-country-selector', 'value'),
@@ -769,7 +806,8 @@ def update_timeseries_chart(country, metrics, start_date, end_date, log_scale):
     logger.debug(f"Actualizando gráfico TS. País: {country}, Métricas: {metrics}, Fechas: {start_date}-{end_date}, Log: {log_scale}")
 
     # --- Cargar datos ---
-    data = api.get_country_timeseries_all(country)
+    # La API ahora recibe las fechas y filtra los datos
+    data = api.get_country_timeseries_all(country, start_date=start_date, end_date=end_date)
 
     if not data or isinstance(data, dict) and data.get("error"):
         error_msg = data.get("error", "Error desconocido") if isinstance(data, dict) else "Error desconocido"
@@ -787,19 +825,18 @@ def update_timeseries_chart(country, metrics, start_date, end_date, log_scale):
     # --- Procesar DataFrame ---
     try:
         df = pd.DataFrame(data['data'])
-        if df.empty: raise ValueError("DataFrame vacío después de cargar")
+        if df.empty: raise ValueError("DataFrame vacío después de cargar (o sin datos en el rango)")
 
         df['date'] = pd.to_datetime(df['date'], errors='coerce')
         df = df.dropna(subset=['date'])
         df = df.sort_values(by='date')
 
-        # Filtrar por fecha
-        mask = (df['date'] >= pd.to_datetime(start_date)) & (df['date'] <= pd.to_datetime(end_date))
-        df = df.loc[mask]
-        if df.empty: raise ValueError("DataFrame vacío después de filtrar fecha")
+        # --- EL FILTRADO DE FECHAS SE ELIMINA DE AQUÍ ---
+        # La API ya ha filtrado los datos por start_date y end_date
+        # if df.empty: raise ValueError("DataFrame vacío después de filtrar fecha") # <-- ELIMINADO
 
     except Exception as e:
-        logger.error(f"Error procesando DataFrame o filtrando fechas para {country}: {e}")
+        logger.error(f"Error procesando DataFrame para {country}: {e}")
         fig_empty = go.Figure()
         fig_empty.update_layout(height=450, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'], annotations=[dict(text=f"Error procesando datos o sin datos en el rango para {country}", showarrow=False)])
         return fig_empty
@@ -860,9 +897,12 @@ def update_timeseries_chart(country, metrics, start_date, end_date, log_scale):
     fig.update_yaxes(title_text="Tasa / Índice (%)", showgrid=False, secondary_y=True, visible=has_secondary_axis)
 
     return fig
+# ========================================================================
+# >>>>> FIN DE MODIFICACIÓN (DASHBOARD) <<<<<
+# ========================================================================
 
 
-# --- CALLBACKS DE DESCARGA (Sin cambios) ---
+# --- CALLBACKS DE DESCARGA (Modificados para usar la API con filtros) ---
 @app.callback(
     Output("download-timeseries-csv", "data"),
     Input("btn-download-ts", "n_clicks"),
@@ -876,17 +916,18 @@ def download_timeseries_data(n_clicks, country, metrics, start_date, end_date):
     if not country or not metrics:
         return no_update
 
-    data = api.get_country_timeseries_all(country)
+    # Llamar a la API CON los filtros de fecha
+    data = api.get_country_timeseries_all(country, start_date=start_date, end_date=end_date)
+    
     if not data or 'data' not in data:
         return no_update
 
     df = pd.DataFrame(data['data'])
-    df['date'] = pd.to_datetime(df['date'])
-
-    if start_date:
-        df = df[df['date'] >= pd.to_datetime(start_date)]
-    if end_date:
-        df = df[df['date'] <= pd.to_datetime(end_date)]
+    
+    # Ya no es necesario filtrar por fecha aquí, la API lo hizo
+    # df['date'] = pd.to_datetime(df['date'])
+    # if start_date: df = df[df['date'] >= pd.to_datetime(start_date)]
+    # if end_date: df = df[df['date'] <= pd.to_datetime(end_date)]
 
     download_metrics = list(metrics)
     if 'new_cases_smoothed' in metrics and 'new_cases' not in download_metrics:
@@ -949,7 +990,7 @@ def fmt(num: Optional[Union[float, int, str]]) -> str:
 # MAIN
 # ============================================================================
 if __name__ == '__main__':
-    print("\n" + "="*70); print(f"🚀 Iniciando Panel COVID-19 (Países) v6.5 (Callback Corregido)"); print(f"API URL: {config.API_BASE_URL}"); print("="*70)
+    print("\n" + "="*70); print(f"🚀 Iniciando Panel COVID-19 (Países) v6.6 (Lógica API Corregida)"); print(f"API URL: {config.API_BASE_URL}"); print("="*70)
     print(f"\n🌍 Dashboard: http://127.0.0.1:8050"); print(f"💡 API debe estar en: {config.API_BASE_URL}")
     print("\n✨ Funcionalidades: Vista General, Evolución (Doble Eje/Barras), Comparación, Estadísticas, Correlaciones.")
     print("\n⏳ CTRL+C para detener"); print("="*70 + "\n")

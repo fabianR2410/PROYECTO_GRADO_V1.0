@@ -88,7 +88,7 @@ logger = logging.getLogger(__name__)
 class APIConfig:
     DATA_FILE = DATA_DIR / "processed_covid.csv.gz" # Now DATA_DIR is defined
     API_TITLE = env_config("API_TITLE", "COVID-19 Data API (Countries)")
-    API_VERSION = env_config("API_VERSION", "5.1.0")
+    API_VERSION = env_config("API_VERSION", "5.2.0") # Versión actualizada
     ENVIRONMENT = env_config("ENVIRONMENT", "development")
 
     _api_keys_str = env_config("API_KEYS", default="")
@@ -265,12 +265,21 @@ class DataLoader:
         if 'total_cases' in available_cols: global_summary['total_cases'] = self._clean_float(latest['total_cases'].sum())
         if 'total_deaths' in available_cols: global_summary['total_deaths'] = self._clean_float(latest['total_deaths'].sum())
         if 'total_vaccinations' in available_cols: global_summary['total_vaccinations'] = self._clean_float(latest['total_vaccinations'].sum())
+        
+        # ====================================================================
+        # >>>>> INICIO DE MODIFICACIÓN (API) <<<<<
+        # ====================================================================
+        if 'population' in available_cols: global_summary['total_population'] = self._clean_float(latest['population'].sum())
+        # ====================================================================
+        # >>>>> FIN DE MODIFICACIÓN (API) <<<<<
+        # ====================================================================
+
         global_summary['countries_affected'] = int(latest['location'].nunique())
         global_summary['last_updated'] = latest['date'].max().strftime('%Y-%m-%d')
         self.precomputed['global_summary'] = global_summary
 
         # Map data
-        possible_metrics = ['total_cases', 'total_deaths', 'total_vaccinations', 'people_fully_vaccinated', 'total_cases_per_million', 'total_deaths_per_million']
+        possible_metrics = ['total_cases', 'total_deaths', 'total_vaccinations', 'people_fully_vaccinated', 'total_cases_per_million', 'total_deaths_per_million', 'population']
         available_map_metrics = [m for m in possible_metrics if m in available_cols]
         self.precomputed['map_data'] = {}
         for metric in available_map_metrics:
@@ -335,7 +344,19 @@ app_start_time = time.time()
 # ============================================================================
 class HealthResponse(BaseModel): status: str; version: str; uptime_seconds: float; data_loaded: bool; cache_backend: str
 class TimeSeriesPoint(BaseModel): date: str; value: Optional[float]
-class GlobalSummary(BaseModel): total_cases: Optional[float]; total_deaths: Optional[float]; total_vaccinations: Optional[float] = None; countries_affected: int; last_updated: str
+# ====================================================================
+# >>>>> INICIO DE MODIFICACIÓN (API) <<<<<
+# ====================================================================
+class GlobalSummary(BaseModel): 
+    total_cases: Optional[float]
+    total_deaths: Optional[float]
+    total_vaccinations: Optional[float] = None
+    total_population: Optional[float] = None # AÑADIDO
+    countries_affected: int
+    last_updated: str
+# ====================================================================
+# >>>>> FIN DE MODIFICACIÓN (API) <<<<<
+# ====================================================================
 class MapDataPoint(BaseModel): country: str; value: Optional[float]; population: Optional[float]; iso_code: str
 class MapDataResponse(BaseModel): metric: str; total_countries: int; data: List[MapDataPoint]
 class CountryListResponse(BaseModel): total: int; countries: List[str]
@@ -373,12 +394,26 @@ async def get_global_summary(request: Request):
         if 'total_cases' in latest.columns: summary['total_cases'] = data_loader._clean_float(latest['total_cases'].sum())
         if 'total_deaths' in latest.columns: summary['total_deaths'] = data_loader._clean_float(latest['total_deaths'].sum())
         if 'total_vaccinations' in latest.columns: summary['total_vaccinations'] = data_loader._clean_float(latest['total_vaccinations'].sum())
+        # ====================================================================
+        # >>>>> INICIO DE MODIFICACIÓN (API) <<<<<
+        # ====================================================================
+        if 'population' in latest.columns: summary['total_population'] = data_loader._clean_float(latest['population'].sum())
+        # ====================================================================
+        # >>>>> FIN DE MODIFICACIÓN (API) <<<<<
+        # ====================================================================
     return summary
 
+# ============================================================================
+# >>>>> INICIO DE MODIFICACIÓN (API) <<<<<
+# ============================================================================
 @app.get("/covid/map-data", tags=["Global Stats"], response_model=MapDataResponse, dependencies=[Depends(verify_api_key)])
 @limiter.limit(f"{config.RATE_LIMIT_PER_MINUTE}/minute")
 @cached_endpoint()
-async def get_map_data(request: Request, metric: str = Query("total_cases", description="Métrica para el mapa")):
+async def get_map_data(
+    request: Request, 
+    metric: str = Query("total_cases", description="Métrica para el mapa"),
+    top: Optional[int] = Query(None, ge=1, description="Devolver solo los N primeros resultados") # AÑADIDO
+):
     map_data = data_loader.precomputed.get('map_data', {}).get(metric)
     if not map_data: # Fallback
         df = data_loader.get_dataframe(); df_reset = df.reset_index() if config.USE_INDEXES else df
@@ -389,7 +424,22 @@ async def get_map_data(request: Request, metric: str = Query("total_cases", desc
             value = data_loader._clean_float(row.get(metric)); iso_code = data_loader._clean_string(row.get('iso_code'))
             if value is not None and value >= 0 and iso_code: # Allow 0
                 map_data.append({'country': row['location'], 'value': value, 'population': data_loader._clean_float(row.get('population')), 'iso_code': iso_code})
-    return {'metric': metric, 'total_countries': len(map_data), 'data': map_data}
+    
+    # APLICAR LÓGICA DE TOP N
+    final_data = map_data
+    if top:
+        # Ordenar por 'value', manejar Nones por si acaso
+        final_data = sorted(
+            [d for d in map_data if d.get('value') is not None], 
+            key=lambda x: x['value'], 
+            reverse=True
+        )
+        final_data = final_data[:top] # Limitar a los N primeros
+
+    return {'metric': metric, 'total_countries': len(final_data), 'data': final_data}
+# ============================================================================
+# >>>>> FIN DE MODIFICACIÓN (API) <<<<<
+# ============================================================================
 
 @app.get("/covid/countries", tags=["Countries"], response_model=CountryListResponse, dependencies=[Depends(verify_api_key)])
 @limiter.limit(f"{config.RATE_LIMIT_PER_MINUTE}/minute")
@@ -400,7 +450,7 @@ async def list_countries(request: Request):
     return {'total': len(countries), 'countries': sorted(countries)}
 
 # ============================================================================
-# >>>>> INICIO DE MODIFICACIÓN <<<<<
+# >>>>> INICIO DE MODIFICACIÓN (API) <<<<<
 # ============================================================================
 @app.get("/covid/country/{country_name}", tags=["Countries"], response_model=CountryDataResponse, dependencies=[Depends(verify_api_key)])
 @limiter.limit(f"{config.RATE_LIMIT_PER_MINUTE}/minute")
@@ -408,18 +458,37 @@ async def list_countries(request: Request):
 async def get_country_data(
     request: Request, 
     country_name: str, 
-    # MODIFICACIÓN: Aumenta el límite por defecto y máximo para permitir series de tiempo completas
-    limit: int = Query(5000, ge=1, le=10000) 
+    limit: int = Query(5000, ge=1, le=10000),
+    # AÑADIR PARÁMETROS DE FECHA
+    start_date: Optional[str] = Query(None, description="Fecha inicio YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="Fecha fin YYYY-MM-DD")
 ):
     df = data_loader.get_dataframe()
+    
+    # Obtener *todos* los datos del país primero
     if config.USE_INDEXES:
         if country_name not in df.index.get_level_values('location'): raise HTTPException(404, detail=f"País '{country_name}' no encontrado")
-        # MODIFICACIÓN: Usa .tail(limit) para obtener los últimos N registros
-        country_df = df.loc[country_name].tail(limit).reset_index() 
+        country_df_full = df.loc[country_name].reset_index() 
     else: 
-        country_df = df[df['location'] == country_name].tail(limit)
+        country_df_full = df[df['location'] == country_name]
     
-    if country_df.empty: raise HTTPException(404, detail=f"País '{country_name}' no encontrado")
+    if country_df_full.empty: raise HTTPException(404, detail=f"País '{country_name}' no encontrado")
+    
+    # --- APLICAR FILTROS DE FECHA AQUÍ ---
+    if start_date:
+        try:
+            country_df_full = country_df_full[country_df_full['date'] >= pd.to_datetime(start_date)]
+        except Exception as e:
+            logger.warning(f"Error parseando start_date '{start_date}': {e}")
+    if end_date:
+        try:
+            country_df_full = country_df_full[country_df_full['date'] <= pd.to_datetime(end_date)]
+        except Exception as e:
+            logger.warning(f"Error parseando end_date '{end_date}': {e}")
+    # --- FIN DE FILTROS ---
+
+    # Aplicar el limit *después* de filtrar por fecha (obtener los últimos N)
+    country_df = country_df_full.tail(limit) 
     
     records = country_df.to_dict(orient='records')
     for record in records:
@@ -439,7 +508,7 @@ async def get_country_data(
 
     return {'country': country_name, 'total_records': len(records), 'data': records}
 # ============================================================================
-# >>>>> FIN DE MODIFICACIÓN <<<<<
+# >>>>> FIN DE MODIFICACIÓN (API) <<<<<
 # ============================================================================
 
 @app.get("/covid/timeseries/{country_name}", tags=["Time Series"], response_model=TimeSeriesResponse, dependencies=[Depends(verify_api_key)])

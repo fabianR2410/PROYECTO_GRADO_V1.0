@@ -56,3 +56,14 @@
 2025-10-22 22:23:43,790 - __main__ - INFO - ✅ Datos: 322,339 registros | 234 países | Rango: 2020-01-01 a 2023-10-24
 2025-10-22 22:23:43,791 - __main__ - INFO - 💾 Memoria: 51.74 MB | ⚡ Cache: memory | 🔑 Auth: Disabled (dev)
 2025-10-22 22:23:43,791 - __main__ - INFO - ======================================================================
+2025-10-22 23:15:24,315 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 23:15:24,315 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 23:15:25,145 - __main__ - INFO - Precomputando métricas...
+2025-10-22 23:15:25,246 - __main__ - INFO - ✅ Métricas (global, map) precomputadas
+2025-10-22 23:15:25,251 - __main__ - INFO - ✅ Datos cargados: 322,339 registros
+2025-10-22 23:15:25,312 - __main__ - INFO - ======================================================================
+2025-10-22 23:15:25,313 - __main__ - INFO - 🚀 Iniciando COVID-19 Data API (Countries) v5.2.0 (development)
+2025-10-22 23:15:25,313 - __main__ - INFO - ======================================================================
+2025-10-22 23:15:25,313 - __main__ - INFO - ✅ Datos: 322,339 registros | 234 países | Rango: 2020-01-01 a 2023-10-24
+2025-10-22 23:15:25,314 - __main__ - INFO - 💾 Memoria: 51.74 MB | ⚡ Cache: memory | 🔑 Auth: Disabled (dev)
+2025-10-22 23:15:25,314 - __main__ - INFO - ======================================================================
