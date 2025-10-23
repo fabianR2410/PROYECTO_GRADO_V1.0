@@ -2016,3 +2016,153 @@ OSError: [Errno 22] Invalid argument: 'C:\\Users\\Usuario\\Documents\\proyecto_g
 2025-10-21 10:09:24,364 - INFO - PIPELINE COMPLETADO EXITOSAMENTE en 22.50 segundos
 2025-10-21 10:09:24,365 - INFO - ======================================================================
 2025-10-21 10:09:24,366 - INFO - Resumen de ejecución guardado en C:\Users\Usuario\Documents\proyecto_grdo_v2\pipeline_summary.txt
+2025-10-22 16:25:53,662 - INFO - Cargando configuración desde variables de entorno...
+2025-10-22 16:25:53,662 - INFO - Environment: development
+2025-10-22 16:25:53,678 - INFO - Directorio de datos: C:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-22 16:25:53,678 - INFO - Log level: INFO
+2025-10-22 16:25:53,678 - INFO - ======================================================================
+2025-10-22 16:25:53,678 - INFO - INICIANDO PIPELINE COVID-19 ETL
+2025-10-22 16:25:53,678 - INFO - Directorio base: C:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-22 16:25:53,678 - INFO - Directorio de datos: C:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-22 16:25:53,684 - INFO - ======================================================================
+2025-10-22 16:25:53,684 - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-22 16:25:53,878 - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-22 16:26:00,133 - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-22 16:26:00,133 - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-22 16:26:00,255 - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-22 16:26:00,318 - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-22 16:26:00,735 - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-22 16:26:00,774 - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-22 16:26:00,804 - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-22 16:26:00,804 - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-22 16:26:00,936 - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-22 16:26:01,395 - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-22 16:26:01,926 - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-22 16:26:02,599 - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-22 16:26:02,766 - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-22 16:26:03,128 - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-22 16:26:03,452 - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-22 16:26:03,462 - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-22 16:26:03,604 - INFO - Backups creados en: C:\Users\Usuario\Documents\proyecto_grdo_v2\data\backups\20251022_162603
+2025-10-22 16:26:03,604 - INFO - Guardando archivo principal procesado...
+2025-10-22 16:26:08,693 - INFO - Guardando archivo comprimido...
+2025-10-22 16:26:25,507 - INFO - Guardando métricas de continentes...
+2025-10-22 16:26:25,525 - INFO - Guardando métricas de regiones...
+2025-10-22 16:26:25,535 - INFO - Guardando reporte de calidad...
+2025-10-22 16:26:25,540 - INFO - Archivo comprimido guardado: 8.42 MB
+2025-10-22 16:26:25,540 - INFO - Todos los archivos guardados exitosamente
+2025-10-22 16:26:25,540 - INFO - ============================================================
+2025-10-22 16:26:25,543 - INFO - REPORTE DE CALIDAD DE DATOS
+2025-10-22 16:26:25,543 - INFO - ============================================================
+2025-10-22 16:26:25,564 - INFO - Dimensiones finales: 322,339 filas x 16 columnas
+2025-10-22 16:26:25,571 - INFO - Países únicos: 234
+2025-10-22 16:26:25,573 - INFO - Duplicados removidos: 0
+2025-10-22 16:26:25,573 - INFO - Outliers tratados: 26,497
+2025-10-22 16:26:25,578 - INFO - Valores faltantes manejados: 0
+2025-10-22 16:26:25,578 - INFO - Features creados: 6
+2025-10-22 16:26:25,581 - INFO - Completitud de datos: 88.80%
+2025-10-22 16:26:25,581 - INFO - ============================================================
+2025-10-22 16:26:25,581 - INFO - ======================================================================
+2025-10-22 16:26:25,581 - INFO - PIPELINE COMPLETADO EXITOSAMENTE en 31.86 segundos
+2025-10-22 16:26:25,581 - INFO - ======================================================================
+2025-10-22 16:26:25,591 - INFO - Resumen de ejecución guardado en C:\Users\Usuario\Documents\proyecto_grdo_v2\pipeline_summary.txt
+2025-10-22 18:41:26,089 - INFO - Cargando configuración desde variables de entorno...
+2025-10-22 18:41:26,089 - INFO - Environment: development
+2025-10-22 18:41:26,089 - INFO - Directorio de datos: C:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-22 18:41:26,089 - INFO - Log level: INFO
+2025-10-22 18:41:26,089 - INFO - ======================================================================
+2025-10-22 18:41:26,089 - INFO - INICIANDO PIPELINE COVID-19 ETL
+2025-10-22 18:41:26,089 - INFO - Directorio base: C:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-22 18:41:26,089 - INFO - Directorio de datos: C:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-22 18:41:26,089 - INFO - ======================================================================
+2025-10-22 18:41:26,089 - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-22 18:41:26,166 - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-22 18:41:29,276 - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-22 18:41:29,276 - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-22 18:41:29,379 - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-22 18:41:29,436 - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-22 18:41:29,594 - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-22 18:41:29,623 - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-22 18:41:29,637 - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-22 18:41:29,637 - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-22 18:41:29,687 - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-22 18:41:29,847 - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-22 18:41:30,077 - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-22 18:41:30,291 - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-22 18:41:30,374 - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-22 18:41:30,512 - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-22 18:41:30,651 - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-22 18:41:30,651 - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-22 18:41:30,711 - INFO - Backups creados en: C:\Users\Usuario\Documents\proyecto_grdo_v2\data\backups\20251022_184130
+2025-10-22 18:41:30,711 - INFO - Guardando archivo principal procesado...
+2025-10-22 18:41:32,958 - INFO - Guardando archivo comprimido...
+2025-10-22 18:41:38,695 - INFO - Guardando métricas de continentes...
+2025-10-22 18:41:38,712 - INFO - Guardando métricas de regiones...
+2025-10-22 18:41:38,719 - INFO - Guardando reporte de calidad...
+2025-10-22 18:41:38,720 - INFO - Archivo comprimido guardado: 8.42 MB
+2025-10-22 18:41:38,720 - INFO - Todos los archivos guardados exitosamente
+2025-10-22 18:41:38,721 - INFO - ============================================================
+2025-10-22 18:41:38,721 - INFO - REPORTE DE CALIDAD DE DATOS
+2025-10-22 18:41:38,721 - INFO - ============================================================
+2025-10-22 18:41:38,731 - INFO - Dimensiones finales: 322,339 filas x 16 columnas
+2025-10-22 18:41:38,731 - INFO - Países únicos: 234
+2025-10-22 18:41:38,732 - INFO - Duplicados removidos: 0
+2025-10-22 18:41:38,732 - INFO - Outliers tratados: 26,497
+2025-10-22 18:41:38,732 - INFO - Valores faltantes manejados: 0
+2025-10-22 18:41:38,732 - INFO - Features creados: 6
+2025-10-22 18:41:38,736 - INFO - Completitud de datos: 88.80%
+2025-10-22 18:41:38,737 - INFO - ============================================================
+2025-10-22 18:41:38,737 - INFO - ======================================================================
+2025-10-22 18:41:38,738 - INFO - PIPELINE COMPLETADO EXITOSAMENTE en 12.63 segundos
+2025-10-22 18:41:38,739 - INFO - ======================================================================
+2025-10-22 18:41:38,740 - INFO - Resumen de ejecución guardado en C:\Users\Usuario\Documents\proyecto_grdo_v2\pipeline_summary.txt
+2025-10-22 19:12:34,202 - INFO - Cargando configuración desde variables de entorno...
+2025-10-22 19:12:34,208 - INFO - Environment: development
+2025-10-22 19:12:34,209 - INFO - Directorio de datos: C:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-22 19:12:34,210 - INFO - Log level: INFO
+2025-10-22 19:12:34,211 - INFO - ======================================================================
+2025-10-22 19:12:34,216 - INFO - INICIANDO PIPELINE COVID-19 ETL
+2025-10-22 19:12:34,217 - INFO - Directorio base: C:\Users\Usuario\Documents\proyecto_grdo_v2
+2025-10-22 19:12:34,217 - INFO - Directorio de datos: C:\Users\Usuario\Documents\proyecto_grdo_v2\data
+2025-10-22 19:12:34,219 - INFO - ======================================================================
+2025-10-22 19:12:34,220 - INFO - FASE 1: EXTRACCION DE DATOS
+2025-10-22 19:12:34,419 - INFO - Checksum del archivo: 847a30848fde5a9c...
+2025-10-22 19:12:40,037 - INFO - Datos crudos cargados: 350085 filas x 16 columnas
+2025-10-22 19:12:40,037 - INFO - FASE 2: TRANSFORMACION Y LIMPIEZA
+2025-10-22 19:12:40,117 - INFO - Columnas seleccionadas: 10 (eliminadas por missing > 95.0%: 0)
+2025-10-22 19:12:40,154 - INFO - Tipos convertidos: 2 categóricas, 7 numéricas
+2025-10-22 19:12:40,367 - WARNING - Registros con población < 10000: 11080 -> eliminando filas
+2025-10-22 19:12:40,380 - INFO - Calculando métricas de agregados (Regiones y Continentes)...
+2025-10-22 19:12:40,403 - INFO - Métricas de Continentes calculadas: 6 filas
+2025-10-22 19:12:40,404 - INFO - Métricas de Regiones calculadas: 6 filas
+2025-10-22 19:12:40,455 - INFO - Ubicaciones (países) filtradas (agregados o < 30 puntos): 247 -> 234
+2025-10-22 19:12:40,626 - INFO - Valores faltantes manejados: 0 (restantes: 320476)
+2025-10-22 19:12:40,873 - INFO - Outliers detectados y tratados en 'new_cases': 19059
+2025-10-22 19:12:41,123 - INFO - Outliers detectados y tratados en 'new_deaths': 7438
+2025-10-22 19:12:41,206 - WARNING - people_fully_vaccinated > people_vaccinated: 1248 registros -> ajustando fully_vaccinated al valor de people_vaccinated
+2025-10-22 19:12:41,451 - INFO - Features creados: 6 (mortality_rate, total_cases_per_100k, total_deaths_per_100k, new_cases_smoothed, new_deaths_smoothed, vaccination_rate)
+2025-10-22 19:12:41,670 - INFO - Transformación completada: 322339 filas x 16 columnas
+2025-10-22 19:12:41,671 - INFO - FASE 3: CARGA Y ALMACENAMIENTO
+2025-10-22 19:12:41,784 - INFO - Backups creados en: C:\Users\Usuario\Documents\proyecto_grdo_v2\data\backups\20251022_191241
+2025-10-22 19:12:41,784 - INFO - Guardando archivo principal procesado...
+2025-10-22 19:12:44,466 - INFO - Guardando archivo comprimido...
+2025-10-22 19:12:50,713 - INFO - Guardando métricas de continentes...
+2025-10-22 19:12:50,718 - INFO - Guardando métricas de regiones...
+2025-10-22 19:12:50,720 - INFO - Guardando reporte de calidad...
+2025-10-22 19:12:50,724 - INFO - Archivo comprimido guardado: 8.42 MB
+2025-10-22 19:12:50,724 - INFO - Todos los archivos guardados exitosamente
+2025-10-22 19:12:50,725 - INFO - ============================================================
+2025-10-22 19:12:50,725 - INFO - REPORTE DE CALIDAD DE DATOS
+2025-10-22 19:12:50,726 - INFO - ============================================================
+2025-10-22 19:12:50,739 - INFO - Dimensiones finales: 322,339 filas x 16 columnas
+2025-10-22 19:12:50,739 - INFO - Países únicos: 234
+2025-10-22 19:12:50,740 - INFO - Duplicados removidos: 0
+2025-10-22 19:12:50,740 - INFO - Outliers tratados: 26,497
+2025-10-22 19:12:50,740 - INFO - Valores faltantes manejados: 0
+2025-10-22 19:12:50,741 - INFO - Features creados: 6
+2025-10-22 19:12:50,743 - INFO - Completitud de datos: 88.80%
+2025-10-22 19:12:50,744 - INFO - ============================================================
+2025-10-22 19:12:50,744 - INFO - ======================================================================
+2025-10-22 19:12:50,745 - INFO - PIPELINE COMPLETADO EXITOSAMENTE en 16.51 segundos
+2025-10-22 19:12:50,746 - INFO - ======================================================================
+2025-10-22 19:12:50,747 - INFO - Resumen de ejecución guardado en C:\Users\Usuario\Documents\proyecto_grdo_v2\pipeline_summary.txt

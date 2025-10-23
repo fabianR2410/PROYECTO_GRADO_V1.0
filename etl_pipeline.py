@@ -1,7 +1,6 @@
 """
-ETL Pipeline COVID-19 - PRODUCTION VERSION
-==========================================
-Pipeline robusto con manejo de errores, reintentos, validación y logging mejorado.
+ETL Pipeline COVID-19
+======================
 """
 
 from __future__ import annotations
@@ -29,7 +28,7 @@ except ImportError:
     sys.exit(1)
 
 # ============================================================================
-# CONFIGURACIÓN DE LOGGING MEJORADO
+# CONFIGURACIÓN DE LOGGING
 # ============================================================================
 
 # ETIQUETA: Clase para formatear los mensajes de log (ej. añadir emojis o formato JSON)

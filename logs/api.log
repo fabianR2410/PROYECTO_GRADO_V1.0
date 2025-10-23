@@ -2593,3 +2593,227 @@ INFO:__main__:📅 Rango: 2020-01-01 a 2023-10-24
 2025-10-21 21:12:28,648 - covid_api - INFO - ⚡ Cache: memory
 2025-10-21 21:12:28,648 - covid_api - INFO - 🔑 Auth: Disabled (dev mode)
 2025-10-21 21:12:28,648 - covid_api - INFO - ======================================================================
+2025-10-22 16:24:27,856 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 16:24:27,856 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 16:24:29,063 - __main__ - INFO - Precomputando métricas...
+2025-10-22 16:24:29,094 - __main__ - ERROR - Error cargando datos: 'total_vaccinations'
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'total_vaccinations'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\covid_api.py", line 467, in load_data
+    self._precompute_summaries()
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\covid_api.py", line 489, in _precompute_summaries
+    'total_vaccinations': self._clean_float(latest['total_vaccinations'].sum()),
+                                            ~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'total_vaccinations'
+2025-10-22 16:26:34,338 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 16:26:34,353 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 16:26:35,463 - __main__ - INFO - Precomputando métricas...
+2025-10-22 16:26:35,534 - __main__ - ERROR - Error cargando datos: 'total_vaccinations'
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'total_vaccinations'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\covid_api.py", line 467, in load_data
+    self._precompute_summaries()
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\covid_api.py", line 489, in _precompute_summaries
+    'total_vaccinations': self._clean_float(latest['total_vaccinations'].sum()),
+                                            ~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'total_vaccinations'
+2025-10-22 16:29:17,934 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 16:29:17,941 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 16:29:19,149 - __main__ - INFO - Precomputando métricas...
+2025-10-22 16:29:19,196 - __main__ - ERROR - Error cargando datos: 'total_vaccinations'
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'total_vaccinations'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\covid_api.py", line 467, in load_data
+    self._precompute_summaries()
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\covid_api.py", line 489, in _precompute_summaries
+    'total_vaccinations': self._clean_float(latest['total_vaccinations'].sum()),
+                                            ~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Documents\proyecto_grdo_v2\.venv\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'total_vaccinations'
+2025-10-22 16:39:13,567 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 16:39:13,567 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 16:39:14,810 - __main__ - INFO - Precomputando métricas...
+2025-10-22 16:39:14,897 - __main__ - WARNING - ⚠️ Columna 'total_vaccinations' no disponible en los datos
+2025-10-22 16:39:14,933 - __main__ - WARNING - ⚠️ Columna 'continent' no disponible
+2025-10-22 16:39:14,933 - __main__ - WARNING - ⚠️ Columna 'region' no disponible
+2025-10-22 16:39:14,933 - __main__ - INFO - ✅ Métricas precomputadas
+2025-10-22 16:39:14,944 - __main__ - INFO - ✅ Datos cargados: 322,339 registros
+2025-10-22 16:39:15,041 - __main__ - INFO - ======================================================================
+2025-10-22 16:39:15,041 - __main__ - INFO - 🚀 Iniciando COVID-19 Data API v5.0.0
+2025-10-22 16:39:15,041 - __main__ - INFO - Environment: development
+2025-10-22 16:39:15,041 - __main__ - INFO - ======================================================================
+2025-10-22 16:39:15,041 - __main__ - INFO - ✅ Datos: 322,339 registros
+2025-10-22 16:39:15,041 - __main__ - INFO - 💾 Memoria: 51.74 MB
+2025-10-22 16:39:15,041 - __main__ - INFO - 🌍 Países: 234
+2025-10-22 16:39:15,041 - __main__ - INFO - ⚡ Cache: memory
+2025-10-22 16:39:15,041 - __main__ - INFO - 🔑 Auth: Disabled (dev mode)
+2025-10-22 16:39:15,041 - __main__ - INFO - 📊 Continentes: 0 | Regiones: 0
+2025-10-22 16:39:15,041 - __main__ - INFO - ======================================================================
+2025-10-22 18:40:46,892 - __main__ - INFO - 🛑 Deteniendo API...
+2025-10-22 18:41:53,975 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 18:41:53,975 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 18:41:54,663 - __main__ - INFO - Precomputando métricas...
+2025-10-22 18:41:54,714 - __main__ - WARNING - ⚠️ Columna 'total_vaccinations' no disponible en los datos
+2025-10-22 18:41:54,730 - __main__ - WARNING - ⚠️ Columna 'continent' no disponible
+2025-10-22 18:41:54,730 - __main__ - WARNING - ⚠️ Columna 'region' no disponible
+2025-10-22 18:41:54,730 - __main__ - INFO - ✅ Métricas precomputadas
+2025-10-22 18:41:54,733 - __main__ - INFO - ✅ Datos cargados: 322,339 registros
+2025-10-22 18:41:54,779 - __main__ - INFO - ======================================================================
+2025-10-22 18:41:54,779 - __main__ - INFO - 🚀 Iniciando COVID-19 Data API v5.0.0
+2025-10-22 18:41:54,779 - __main__ - INFO - Environment: development
+2025-10-22 18:41:54,780 - __main__ - INFO - ======================================================================
+2025-10-22 18:41:54,780 - __main__ - INFO - ✅ Datos: 322,339 registros
+2025-10-22 18:41:54,781 - __main__ - INFO - 💾 Memoria: 51.74 MB
+2025-10-22 18:41:54,781 - __main__ - INFO - 🌍 Países: 234
+2025-10-22 18:41:54,781 - __main__ - INFO - ⚡ Cache: memory
+2025-10-22 18:41:54,781 - __main__ - INFO - 🔑 Auth: Disabled (dev mode)
+2025-10-22 18:41:54,781 - __main__ - INFO - 📊 Continentes: 0 | Regiones: 0
+2025-10-22 18:41:54,781 - __main__ - INFO - ======================================================================
+2025-10-22 19:03:58,919 - __main__ - INFO - 🛑 Deteniendo API...
+2025-10-22 19:13:29,972 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 19:13:29,973 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 19:13:30,768 - __main__ - INFO - Precomputando métricas...
+2025-10-22 19:13:30,827 - __main__ - WARNING - ⚠️ Columna 'total_vaccinations' no disponible en los datos
+2025-10-22 19:13:30,840 - __main__ - WARNING - ⚠️ Columna 'continent' no disponible
+2025-10-22 19:13:30,840 - __main__ - WARNING - ⚠️ Columna 'region' no disponible
+2025-10-22 19:13:30,840 - __main__ - INFO - ✅ Métricas precomputadas
+2025-10-22 19:13:30,845 - __main__ - INFO - ✅ Datos cargados: 322,339 registros
+2025-10-22 19:13:30,925 - __main__ - INFO - ======================================================================
+2025-10-22 19:13:30,925 - __main__ - INFO - 🚀 Iniciando COVID-19 Data API v5.0.0
+2025-10-22 19:13:30,925 - __main__ - INFO - Environment: development
+2025-10-22 19:13:30,927 - __main__ - INFO - ======================================================================
+2025-10-22 19:13:30,927 - __main__ - INFO - ✅ Datos: 322,339 registros
+2025-10-22 19:13:30,927 - __main__ - INFO - 💾 Memoria: 51.74 MB
+2025-10-22 19:13:30,927 - __main__ - INFO - 🌍 Países: 234
+2025-10-22 19:13:30,927 - __main__ - INFO - ⚡ Cache: memory
+2025-10-22 19:13:30,927 - __main__ - INFO - 🔑 Auth: Disabled (dev mode)
+2025-10-22 19:13:30,927 - __main__ - INFO - 📊 Continentes: 0 | Regiones: 0
+2025-10-22 19:13:30,927 - __main__ - INFO - ======================================================================
+2025-10-22 19:28:00,414 - __main__ - INFO - 🛑 Deteniendo API...
+2025-10-22 19:28:05,081 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 19:28:05,082 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 19:28:06,205 - __main__ - INFO - Precomputando métricas...
+2025-10-22 19:28:06,302 - __main__ - WARNING - ⚠️ Columna 'total_vaccinations' no disponible en los datos
+2025-10-22 19:28:06,320 - __main__ - WARNING - ⚠️ Columna 'continent' no disponible
+2025-10-22 19:28:06,321 - __main__ - WARNING - ⚠️ Columna 'region' no disponible
+2025-10-22 19:28:06,321 - __main__ - INFO - ✅ Métricas precomputadas
+2025-10-22 19:28:06,324 - __main__ - INFO - ✅ Datos cargados: 322,339 registros
+2025-10-22 19:28:06,487 - __main__ - INFO - ======================================================================
+2025-10-22 19:28:06,488 - __main__ - INFO - 🚀 Iniciando COVID-19 Data API v5.0.0
+2025-10-22 19:28:06,488 - __main__ - INFO - Environment: development
+2025-10-22 19:28:06,488 - __main__ - INFO - ======================================================================
+2025-10-22 19:28:06,489 - __main__ - INFO - ✅ Datos: 322,339 registros
+2025-10-22 19:28:06,489 - __main__ - INFO - 💾 Memoria: 51.74 MB
+2025-10-22 19:28:06,489 - __main__ - INFO - 🌍 Países: 234
+2025-10-22 19:28:06,489 - __main__ - INFO - ⚡ Cache: memory
+2025-10-22 19:28:06,502 - __main__ - INFO - 🔑 Auth: Disabled (dev mode)
+2025-10-22 19:28:06,502 - __main__ - INFO - 📊 Continentes: 0 | Regiones: 0
+2025-10-22 19:28:06,502 - __main__ - INFO - ======================================================================
+2025-10-22 19:37:49,999 - __main__ - INFO - 🛑 Deteniendo API...
+2025-10-22 19:42:40,924 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 19:42:40,924 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 19:42:41,597 - __main__ - INFO - Precomputando métricas...
+2025-10-22 19:42:41,645 - __main__ - WARNING - ⚠️ Columna 'total_vaccinations' no disponible en los datos
+2025-10-22 19:42:41,655 - __main__ - WARNING - ⚠️ Columna 'continent' no disponible
+2025-10-22 19:42:41,656 - __main__ - WARNING - ⚠️ Columna 'region' no disponible
+2025-10-22 19:42:41,658 - __main__ - INFO - ✅ Métricas precomputadas
+2025-10-22 19:42:41,662 - __main__ - INFO - ✅ Datos cargados: 322,339 registros
+2025-10-22 19:42:41,734 - __main__ - INFO - ======================================================================
+2025-10-22 19:42:41,734 - __main__ - INFO - 🚀 Iniciando COVID-19 Data API v5.0.0
+2025-10-22 19:42:41,734 - __main__ - INFO - Environment: development
+2025-10-22 19:42:41,734 - __main__ - INFO - ======================================================================
+2025-10-22 19:42:41,734 - __main__ - INFO - ✅ Datos: 322,339 registros
+2025-10-22 19:42:41,734 - __main__ - INFO - 💾 Memoria: 51.74 MB
+2025-10-22 19:42:41,734 - __main__ - INFO - 🌍 Países: 234
+2025-10-22 19:42:41,734 - __main__ - INFO - ⚡ Cache: memory
+2025-10-22 19:42:41,734 - __main__ - INFO - 🔑 Auth: Disabled (dev mode)
+2025-10-22 19:42:41,734 - __main__ - INFO - 📊 Continentes: 0 | Regiones: 0
+2025-10-22 19:42:41,734 - __main__ - INFO - ======================================================================
+2025-10-22 19:46:51,043 - __main__ - INFO - 🛑 Deteniendo API...
+2025-10-22 19:46:56,181 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 19:46:56,181 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 19:46:56,945 - __main__ - INFO - Precomputando métricas...
+2025-10-22 19:46:56,982 - __main__ - WARNING - ⚠️ Columna 'total_vaccinations' no disponible en los datos
+2025-10-22 19:46:56,994 - __main__ - WARNING - ⚠️ Columna 'continent' no disponible
+2025-10-22 19:46:56,994 - __main__ - WARNING - ⚠️ Columna 'region' no disponible
+2025-10-22 19:46:56,994 - __main__ - INFO - ✅ Métricas precomputadas
+2025-10-22 19:46:57,010 - __main__ - INFO - ✅ Datos cargados: 322,339 registros
+2025-10-22 19:46:57,066 - __main__ - INFO - ======================================================================
+2025-10-22 19:46:57,066 - __main__ - INFO - 🚀 Iniciando COVID-19 Data API v5.0.0
+2025-10-22 19:46:57,066 - __main__ - INFO - Environment: development
+2025-10-22 19:46:57,066 - __main__ - INFO - ======================================================================
+2025-10-22 19:46:57,069 - __main__ - INFO - ✅ Datos: 322,339 registros
+2025-10-22 19:46:57,069 - __main__ - INFO - 💾 Memoria: 51.74 MB
+2025-10-22 19:46:57,069 - __main__ - INFO - 🌍 Países: 234
+2025-10-22 19:46:57,069 - __main__ - INFO - ⚡ Cache: memory
+2025-10-22 19:46:57,069 - __main__ - INFO - 🔑 Auth: Disabled (dev mode)
+2025-10-22 19:46:57,069 - __main__ - INFO - 📊 Continentes: 0 | Regiones: 0
+2025-10-22 19:46:57,069 - __main__ - INFO - ======================================================================
+2025-10-22 19:51:49,501 - __main__ - INFO - 🛑 Deteniendo API...
+2025-10-22 19:52:13,246 - __main__ - INFO - ✅ Caché en memoria inicializado
+2025-10-22 19:52:13,246 - __main__ - INFO - Cargando datos desde C:\Users\Usuario\Documents\proyecto_grdo_v2\data\processed_covid.csv.gz...
+2025-10-22 19:52:13,928 - __main__ - INFO - Precomputando métricas...
+2025-10-22 19:52:13,970 - __main__ - WARNING - ⚠️ Columna 'total_vaccinations' no disponible en los datos
+2025-10-22 19:52:13,989 - __main__ - WARNING - ⚠️ Columna 'continent' no disponible
+2025-10-22 19:52:13,989 - __main__ - WARNING - ⚠️ Columna 'region' no disponible
+2025-10-22 19:52:13,989 - __main__ - INFO - ✅ Métricas precomputadas
+2025-10-22 19:52:13,993 - __main__ - INFO - ✅ Datos cargados: 322,339 registros
+2025-10-22 19:52:14,051 - __main__ - INFO - ======================================================================
+2025-10-22 19:52:14,051 - __main__ - INFO - 🚀 Iniciando COVID-19 Data API v5.0.0
+2025-10-22 19:52:14,052 - __main__ - INFO - Environment: development
+2025-10-22 19:52:14,052 - __main__ - INFO - ======================================================================
+2025-10-22 19:52:14,052 - __main__ - INFO - ✅ Datos: 322,339 registros
+2025-10-22 19:52:14,052 - __main__ - INFO - 💾 Memoria: 51.74 MB
+2025-10-22 19:52:14,052 - __main__ - INFO - 🌍 Países: 234
+2025-10-22 19:52:14,052 - __main__ - INFO - ⚡ Cache: memory
+2025-10-22 19:52:14,052 - __main__ - INFO - 🔑 Auth: Disabled (dev mode)
+2025-10-22 19:52:14,052 - __main__ - INFO - 📊 Continentes: 0 | Regiones: 0
+2025-10-22 19:52:14,053 - __main__ - INFO - ======================================================================
+2025-10-22 20:08:56,775 - __main__ - INFO - 🛑 Deteniendo API...

@@ -1,12 +1,14 @@
 """
-Dashboard COVID-19 Profesional - PRODUCTION VERSION
-===================================================
-Dashboard interactivo con Dash y Plotly optimizado para producción.
+Dashboard COVID-19 Profesional - VERSIÓN SIMPLIFICADA v6.5
+===========================================================
+Dashboard interactivo enfocado en las 14 columnas de datos provistas.
+Se eliminó el selector de rango de fechas de la pestaña Vista General.
 """
 
 import dash
-from dash import dcc, html, Input, Output, State, no_update
+from dash import dcc, html, Input, Output, State, no_update, callback_context
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots # Importar make_subplots
 import plotly.express as px
 import requests
 import logging
@@ -15,43 +17,28 @@ from datetime import datetime, date, timedelta
 from typing import List, Dict, Optional, Any, Tuple, Union
 import time
 import sys
+import pandas as pd
 
 # Variables de entorno
 try:
     from decouple import config as env_config
 except ImportError:
-    print("ERROR: python-decouple no instalado. Ejecuta: pip install python-decouple")
+    print("ERROR: python-decouple no instalado.")
     sys.exit(1)
 
-# ============================================================================
-# CONFIGURACIÓN Y LOGGING
-# ============================================================================
-
-logging.basicConfig(
-    level=env_config("LOG_LEVEL", default="INFO"),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger("CovidDashboard")
-
+# Configuración y Logging
+logging.basicConfig(level=env_config("LOG_LEVEL", default="INFO"), format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("CovidDashboardSimple")
 
 class Config:
     """Configuración del Dashboard desde variables de entorno."""
-
     API_BASE_URL: str = env_config("API_BASE_URL", default="http://127.0.0.1:8000")
     API_KEY: str = env_config("API_KEY", default="")
-
-    DEFAULT_COUNTRY: str = env_config("DEFAULT_COUNTRY", default="Ecuador")
-    UPDATE_INTERVAL_MS: int = env_config("UPDATE_INTERVAL_MS", default=300000, cast=int)  # 5 minutos
-    MAX_COMPARE_COUNTRIES: int = 5
-
-    # Timeout para requests
+    UPDATE_INTERVAL_MS: int = env_config("UPDATE_INTERVAL_MS", default=300000, cast=int)
     REQUEST_TIMEOUT: int = 15
-
-    # Color Palette (Light Theme)
     COLORS: Dict[str, str] = {
         'bg_dark': '#f8f9fa',
         'bg_card': '#ffffff',
-        'bg_card_hover': '#f0f0f0',
         'text_primary': '#1a1a1a',
         'text_secondary': '#666666',
         'accent_blue': '#2563eb',
@@ -59,21 +46,40 @@ class Config:
         'accent_red': '#ef4444',
         'accent_yellow': '#f59e0b',
         'accent_purple': '#8b5cf6',
+        'accent_teal': '#14b8a6',
         'border': '#e5e7eb',
         'grid': '#f0f0f0'
     }
 
+    METRICS: Dict[str, str] = {
+        # Casos y Muertes
+        'total_cases': 'Casos Totales',
+        'new_cases': 'Nuevos Casos (diarios)',
+        'new_cases_smoothed': 'Nuevos Casos (media 7 días)',
+        'total_deaths': 'Muertes Totales',
+        'new_deaths': 'Nuevas Muertes (diarias)',
+        'new_deaths_smoothed': 'Nuevas Muertes (media 7 días)',
+        'mortality_rate': 'Tasa de Mortalidad (%)',
+
+        # Métricas Normalizadas
+        'total_cases_per_100k': 'Casos por 100k hab',
+        'total_deaths_per_100k': 'Muertes por 100k hab',
+
+        # Demografía
+        'population': 'Población'
+    }
+
+    SECONDARY_AXIS_METRICS: List[str] = [
+        'mortality_rate'
+    ]
+
 
 config = Config()
 
-
 # ============================================================================
-# CLIENTE API CON AUTENTICACIÓN
+# CLIENTE API (Sin cambios respecto a v6.4, mantiene lógica de fecha por si se usa después)
 # ============================================================================
-
 class CovidAPI:
-    """Cliente HTTP para la API COVID-19 con autenticación."""
-
     def __init__(self, base_url: str, api_key: str = ""):
         self.base_url = base_url
         self.headers = {}
@@ -81,1122 +87,874 @@ class CovidAPI:
             self.headers["X-API-Key"] = api_key
             logger.info("🔑 API Key configurada")
         else:
-            logger.warning("⚠️ Sin API Key configurada (modo desarrollo)")
+            logger.warning("⚠️ Sin API Key configurada")
 
     def _make_request(self, endpoint: str, params: Optional[Dict] = None) -> Optional[Dict[str, Any]]:
-        """Realiza request HTTP con manejo de errores."""
         url = f"{self.base_url}{endpoint}"
         try:
             logger.debug(f"Request: {endpoint} - Params: {params}")
-            response = requests.get(
-                url,
-                params=params,
-                headers=self.headers,
-                timeout=config.REQUEST_TIMEOUT
-            )
+            response = requests.get(url, params=params, headers=self.headers, timeout=config.REQUEST_TIMEOUT)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.Timeout:
             logger.error(f"Timeout en request a {endpoint}")
-            return None
+            return {"error": "Timeout"} # Devolver error
         except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 401:
-                logger.error("❌ Error de autenticación: API Key inválida o faltante")
-            elif e.response.status_code == 429:
-                logger.warning("⚠️ Rate limit excedido")
-            else:
-                logger.error(f"HTTP Error {e.response.status_code} en {endpoint}: {e}")
-            return None
+            detail = f"HTTP Error {e.response.status_code}"
+            try:
+                error_json = e.response.json()
+                detail += f": {error_json.get('detail', e.response.text)}"
+            except ValueError:
+                 detail += f": {e.response.text}"
+            logger.error(f"Error en {endpoint}: {detail}")
+            return {"error": detail}
         except requests.exceptions.RequestException as e:
             logger.error(f"Error en request a {endpoint}: {e}")
-            return None
+            return {"error": str(e)}
 
     @lru_cache(maxsize=1)
-    def get_countries(self) -> Union[List, Dict[str, Any]]:
-        """Obtiene lista de países (cacheado)."""
-        data = self._make_request("/covid/countries")
-        # CORRECCIÓN: Devuelve dict en éxito, o lista vacía en fallo
-        return data if data else []
+    def get_countries(self) -> Optional[Dict[str, Any]]: return self._make_request("/covid/countries")
 
-    @lru_cache(maxsize=2)
-    def get_continent_metrics(self) -> Dict[str, Any]:
-        """Obtiene métricas de continentes (cacheado)."""
-        data = self._make_request("/covid/metrics/continents")
-        return data if data else {}
+    @lru_cache(maxsize=4)
+    def get_global_summary(self, start_date: Optional[str] = None, end_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        # --- API todavía no usa fechas, así que las ignoramos aquí ---
+        return self._make_request("/covid/global")
 
-    @lru_cache(maxsize=10)
-    def get_map_data(self, metric: str) -> Optional[Dict[str, Any]]:
-        """Obtiene datos para mapa."""
+    @lru_cache(maxsize=20)
+    def get_map_data(self, metric: str, start_date: Optional[str] = None, end_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
+         # --- API todavía no usa fechas, así que las ignoramos aquí ---
         return self._make_request("/covid/map-data", params={'metric': metric})
 
-    @lru_cache(maxsize=200)
-    def get_summary(self, country: str) -> Optional[Dict[str, Any]]:
-        """Obtiene resumen de país (cacheado)."""
-        return self._make_request("/covid/summary", params={'country': country})
+    @lru_cache(maxsize=20)
+    def get_country_timeseries_all(self, country: str, limit: int = 5000) -> Optional[Dict[str, Any]]:
+        logger.info(f"API Call: get_country_timeseries_all (País: {country})")
+        return self._make_request(f"/covid/country/{country}", params={'limit': limit})
 
-    def get_timeseries(self, country: str, metric: str,
-                         start_date: Optional[str] = None,
-                         end_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """Obtiene serie temporal."""
-        params = {'country': country, 'metric': metric}
-        if start_date:
-            params['start_date'] = start_date
-        if end_date:
-            params['end_date'] = end_date
-        return self._make_request("/covid/timeseries", params=params)
+    def compare_countries(self, countries: List[str], metric: str, normalize: bool = False) -> Optional[Dict[str, Any]]:
+        return self._make_request("/covid/compare", params={'countries': countries, 'metric': metric, 'normalize': normalize})
 
-    def compare_countries(self, countries: List[str], metric: str,
-                            start_date: Optional[str] = None,
-                            end_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """Compara métrica entre países."""
-        params = {'countries': countries, 'metric': metric}
-        if start_date:
-            params['start_date'] = start_date
-        if end_date:
-            params['end_date'] = end_date
-        return self._make_request("/covid/compare", params=params)
+    def get_statistical_summary(self, metric: str, include_outliers: bool = False) -> Optional[Dict[str, Any]]:
+        return self._make_request("/covid/metrics/statistics", params={'metric': metric, 'grouping': 'global', 'include_outliers': include_outliers})
+    def get_correlations(self, metrics: List[str], method: str = 'pearson') -> Optional[Dict[str, Any]]:
+        return self._make_request("/covid/metrics/correlations", params={'metrics': metrics, 'grouping': 'global', 'method': method})
 
-
-# Global API client
 api = CovidAPI(config.API_BASE_URL, config.API_KEY)
 
+# ============================================================================
+# INICIALIZAR DASH Y LAYOUT (Sin cambios)
+# ============================================================================
+app = dash.Dash(__name__, title="Panel COVID-19 - Por País (Simple)", suppress_callback_exceptions=True)
+app.index_string = '''<!DOCTYPE html><html><head>{%metas%}<title>{%title%}</title>{%favicon%}{%css%}''' + \
+                   '''<style>body{margin:0;font-family:sans-serif;} .metric-table{width:100%;border-collapse:collapse;font-size:11px;} ''' + \
+                   '''.metric-table th,.metric-table td{padding:6px 8px;text-align:left;border-bottom:1px solid #f0f0f0;} .metric-table th{font-weight:600;color:#666;background:#f8f9fa;position:sticky;top:0;}''' + \
+                   '''.stat-header{font-size:12px;font-weight:600;color:#666;margin-bottom:8px;} .stat-value{font-size:20px;font-weight:700;color:#1a1a1a;} .stat-subvalue{font-size:11px;color:#888;margin-top:4px;}''' + \
+                   '''.warning-message{background:#ffc;border:1px solid #fc6;padding:15px;border-radius:8px;color:#963;margin:20px;}</style></head>''' + \
+                   '''<body>{%app_entry%}<footer>{%config%}{%scripts%}{%renderer%}</footer></body></html>'''
+
+def get_tab_style(): return {'padding':'12px 24px','fontWeight':'600','fontSize':'13px','border':'none','borderBottom':'3px solid transparent','backgroundColor':config.COLORS['bg_card'],'color':config.COLORS['text_secondary']}
+def get_tab_selected_style(): return {'padding':'12px 24px','fontWeight':'700','fontSize':'13px','border':'none','borderBottom':f"3px solid {config.COLORS['accent_blue']}",'backgroundColor':config.COLORS['bg_card'],'color':config.COLORS['accent_blue']}
+def get_card_style(padding='20px'): return {'background':config.COLORS['bg_card'],'borderRadius':'12px','padding':padding,'boxShadow':'0 1px 3px rgba(0,0,0,0.1)','border':f"1px solid {config.COLORS['border']}",'marginBottom':'20px'}
+
+app.layout = html.Div([
+    html.Div([
+        html.Div([ html.H1("🌍 Panel COVID-19 - Análisis por País (Simple)", style={'fontSize':'28px','fontWeight':'700','color':config.COLORS['text_primary'],'margin':'0'}),
+                   html.P("Datos y comparativas de COVID-19 a nivel mundial y por país", style={'fontSize':'13px','color':config.COLORS['text_secondary'],'margin':'5px 0 0 0'}) ], style={'flex':'1'}),
+        html.Div([ html.Span("Cargando...", id='api-status', style={'fontSize':'11px','padding':'6px 12px','background':config.COLORS['accent_yellow'],'color':'white','borderRadius':'20px','fontWeight':'600'}) ])
+    ], style={'background':config.COLORS['bg_card'],'padding':'25px 35px','borderBottom':f"3px solid {config.COLORS['accent_blue']}",'display':'flex','alignItems':'center','justifyContent':'space-between','boxShadow':'0 2px 8px rgba(0,0,0,0.05)'}),
+
+    html.Div([
+        dcc.Tabs(id='main-tabs', value='tab-overview', children=[
+            dcc.Tab(label='📊 Vista General', value='tab-overview', style=get_tab_style(), selected_style=get_tab_selected_style()),
+            dcc.Tab(label='📈 Evolución por País', value='tab-timeseries', style=get_tab_style(), selected_style=get_tab_selected_style()),
+            dcc.Tab(label='📈 Comparaciones (Países)', value='tab-comparisons', style=get_tab_style(), selected_style=get_tab_selected_style()),
+            dcc.Tab(label='📉 Estadísticas (Global)', value='tab-statistics', style=get_tab_style(), selected_style=get_tab_selected_style()),
+            dcc.Tab(label='🔗 Correlaciones (Global)', value='tab-correlations', style=get_tab_style(), selected_style=get_tab_selected_style()),
+        ], style={'borderBottom': f"1px solid {config.COLORS['border']}"})
+    ], style={'background':config.COLORS['bg_card'],'boxShadow':'0 2px 4px rgba(0,0,0,0.05)'}),
+
+    html.Div(id='tabs-content', style={'padding':'20px 35px','background':config.COLORS['bg_dark'],'minHeight':'calc(100vh - 200px)'}),
+    dcc.Store(id='store-countries'),
+    dcc.Interval(id='interval-component', interval=config.UPDATE_INTERVAL_MS, n_intervals=0)
+], style={'background':config.COLORS['bg_dark']})
 
 # ============================================================================
-# INICIALIZAR DASH
+# CALLBACKS: CARGA INICIAL Y ESTADO (Sin cambios)
 # ============================================================================
-
-app = dash.Dash(
-    __name__,
-    title="Panel COVID-19",
-    suppress_callback_exceptions=True,
-    external_stylesheets=[]
-)
-
-app.index_string = '''
-<!DOCTYPE html>
-<html>
-    <head>
-        {%metas%}
-        <title>{%title%}</title>
-        {%favicon%}
-        {%css%}
-        <style>
-            body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-            @keyframes pulse { 0%%, 100%% { opacity: 1; } 50%% { opacity: 0.5; } }
-            ::-webkit-scrollbar { width: 8px; height: 8px; }
-            ::-webkit-scrollbar-track { background: #f1f1f1; }
-            ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-            ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-            .metric-table { width: 100%%; border-collapse: collapse; font-size: 11px; }
-            .metric-table th, .metric-table td { padding: 4px 6px; text-align: left; border-bottom: 1px solid #f0f0f0; }
-            .metric-table th { font-weight: 600; color: #666; }
-            .metric-table td:nth-child(2), .metric-table td:nth-child(3) { text-align: right; font-weight: 500; }
-            .metric-table tr:last-child td { border-bottom: none; }
-            .metric-table-container { max-height: 200px; overflow-y: auto; }
-            .error-message { background: #fee; border: 1px solid #fcc; padding: 15px; border-radius: 8px; color: #c33; margin: 20px; }
-            .warning-message { background: #ffc; border: 1px solid #fc6; padding: 15px; border-radius: 8px; color: #963; margin: 20px; }
-        </style>
-    </head>
-    <body>
-        {%app_entry%}
-        <footer>
-            {%config%}
-            {%scripts%}
-            {%renderer%}
-        </footer>
-    </body>
-</html>
-'''
-
-
-# ============================================================================
-# ESTILOS
-# ============================================================================
-
-STAT_CARD_STYLE: Dict[str, Any] = {
-    'backgroundColor': config.COLORS['bg_card'],
-    'padding': '25px',
-    'borderRadius': '12px',
-    'textAlign': 'center',
-    'border': f"1px solid {config.COLORS['border']}",
-    'transition': 'all 0.3s ease',
-    'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.08)'
-}
-
-CARD_STYLE: Dict[str, Any] = {
-    'backgroundColor': config.COLORS['bg_card'],
-    'padding': '20px',
-    'borderRadius': '12px',
-    'border': f"1px solid {config.COLORS['border']}",
-    'marginBottom': '20px',
-    'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.08)'
-}
-
-
-# ============================================================================
-# LAYOUT
-# ============================================================================
-
-app.layout = html.Div(id="main-container", children=[
-    # Header
-    html.Header(style={
-        'backgroundColor': config.COLORS['bg_card'],
-        'padding': '20px 40px',
-        'display': 'flex',
-        'justifyContent': 'space-between',
-        'alignItems': 'center',
-        'borderBottom': f"2px solid {config.COLORS['border']}",
-        'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.05)'
-    }, children=[
-        html.Div([
-            html.H1("PANEL COVID-19", style={
-                'margin': '0',
-                'fontSize': '28px',
-                'fontWeight': '700',
-                'color': config.COLORS['text_primary'],
-                'letterSpacing': '2px'
-            }),
-            html.P("Análisis Global de la Pandemia", style={
-                'margin': '5px 0 0 0',
-                'fontSize': '14px',
-                'color': config.COLORS['text_secondary'],
-                'fontWeight': '300'
-            })
-        ]),
-        html.Div([
-            html.Div(id='live-indicator', style={
-                'display': 'inline-block',
-                'width': '10px',
-                'height': '10px',
-                'borderRadius': '50%',
-                'backgroundColor': config.COLORS['accent_green'],
-                'marginRight': '8px',
-                'animation': 'pulse 2s infinite'
-            }),
-            html.Span("EN LINEA", style={
-                'fontSize': '12px',
-                'color': config.COLORS['accent_green'],
-                'fontWeight': '600',
-                'letterSpacing': '1px'
-            }),
-            html.Span(id='update-time', style={
-                'marginLeft': '15px',
-                'fontSize': '12px',
-                'color': config.COLORS['text_secondary']
-            })
-        ], style={'display': 'flex', 'alignItems': 'center'})
-    ]),
-
-    # Main Content
-    html.Div(style={
-        'display': 'flex',
-        'padding': '20px',
-        'gap': '0',
-        'minHeight': 'calc(100vh - 80px)'
-    }, children=[
-        # Sidebar
-        html.Aside(style={'width': '320px', 'flexShrink': '0', 'paddingRight': '20px'}, children=[
-            # Country Selector
-            html.Div(style=CARD_STYLE, children=[
-                html.Label("SELECCIONAR PAÍS", style={
-                    'fontSize': '11px',
-                    'fontWeight': '600',
-                    'color': config.COLORS['text_secondary'],
-                    'letterSpacing': '1px',
-                    'marginBottom': '10px',
-                    'display': 'block'
-                }),
-                dcc.Dropdown(
-                    id='country-select',
-                    placeholder="🌍 Selecciona un país...",
-                    value=config.DEFAULT_COUNTRY,
-                    style={
-                        'backgroundColor': config.COLORS['bg_card'],
-                        'color': config.COLORS['text_primary']
-                    }
-                )
-            ]),
-
-            # Main Stats
-            html.Div(id='main-stats', children=[
-                html.Div("Cargando estadísticas...", style={
-                    'color': config.COLORS['text_secondary'],
-                    'textAlign': 'center',
-                    'padding': '40px'
-                })
-            ]),
-
-            # Continent Metrics
-            html.Div(style=CARD_STYLE, children=[
-                html.Label("MÉTRICAS GLOBALES - CONTINENTES", style={
-                    'fontSize': '11px',
-                    'fontWeight': '600',
-                    'color': config.COLORS['text_secondary'],
-                    'letterSpacing': '1px',
-                    'marginBottom': '10px',
-                    'display': 'block'
-                }),
-                dcc.Loading(
-                    id="loading-continent-metrics",
-                    type="circle",
-                    color=config.COLORS['accent_blue'],
-                    children=html.Div(id='continent-metrics-box')
-                )
-            ]),
-
-            # Trend Metric Selector
-            html.Div(style=CARD_STYLE, children=[
-                html.Label("MÉTRICA DE TENDENCIA / COMPARACIÓN", style={
-                    'fontSize': '11px',
-                    'fontWeight': '600',
-                    'color': config.COLORS['text_secondary'],
-                    'letterSpacing': '1px',
-                    'marginBottom': '10px',
-                    'display': 'block'
-                }),
-                dcc.Dropdown(
-                    id='trend-metric-select',
-                    options=[
-                        {'label': '📈 Nuevos Casos (Promedio 7 días)', 'value': 'new_cases_smoothed'},
-                        {'label': '💀 Nuevas Muertes (Promedio 7 días)', 'value': 'new_deaths_smoothed'},
-                        {'label': '🦠 Casos Totales', 'value': 'total_cases'},
-                        {'label': '☠️ Muertes Totales', 'value': 'total_deaths'},
-                    ],
-                    value='new_cases_smoothed',
-                    clearable=False,
-                    style={
-                        'backgroundColor': config.COLORS['bg_card'],
-                        'color': config.COLORS['text_primary']
-                    }
-                )
-            ]),
-
-            # Map Metric Selector
-            html.Div(style=CARD_STYLE, children=[
-                html.Label("MÉTRICA DEL MAPA", style={
-                    'fontSize': '11px',
-                    'fontWeight': '600',
-                    'color': config.COLORS['text_secondary'],
-                    'letterSpacing': '1px',
-                    'marginBottom': '10px',
-                    'display': 'block'
-                }),
-                dcc.Dropdown(
-                    id='map-metric',
-                    options=[
-                        {'label': '🦠 Casos Totales', 'value': 'total_cases'},
-                        {'label': '💀 Muertes Totales', 'value': 'total_deaths'},
-                        {'label': '💉 Vacunados (Completos)', 'value': 'people_fully_vaccinated'},
-                        {'label': '📊 Tasa de Vacunación (%)', 'value': 'vaccination_rate'},
-                    ],
-                    value='total_cases',
-                    clearable=False,
-                    style={
-                        'backgroundColor': config.COLORS['bg_card'],
-                        'color': config.COLORS['text_primary']
-                    }
-                )
-            ]),
-
-            # Date Range
-            html.Div(style=CARD_STYLE, children=[
-                html.Label("RANGO DE FECHAS", style={
-                    'fontSize': '11px',
-                    'fontWeight': '600',
-                    'color': config.COLORS['text_secondary'],
-                    'letterSpacing': '1px',
-                    'marginBottom': '10px',
-                    'display': 'block'
-                }),
-                dcc.DatePickerRange(
-                    id='date-range',
-                    start_date='2020-03-01',
-                    end_date='2023-11-30', # Considera actualizar esta fecha o hacerla dinámica
-                    min_date_allowed='2019-12-01',
-                    max_date_allowed=date.today().isoformat(),
-                    display_format='YYYY-MM-DD',
-                    style={'width': '100%'},
-                    start_date_placeholder_text='Fecha inicio',
-                    end_date_placeholder_text='Fecha fin'
-                )
-            ]),
-
-            # Compare Countries
-            html.Div(style=CARD_STYLE, children=[
-                html.Label(f"COMPARAR PAÍSES (Máx {config.MAX_COMPARE_COUNTRIES})", style={
-                    'fontSize': '11px',
-                    'fontWeight': '600',
-                    'color': config.COLORS['text_secondary'],
-                    'letterSpacing': '1px',
-                    'marginBottom': '10px',
-                    'display': 'block'
-                }),
-                dcc.Dropdown(
-                    id='compare-countries',
-                    multi=True,
-                    placeholder=f"🔄 Selecciona hasta {config.MAX_COMPARE_COUNTRIES} países...",
-                    style={
-                        'backgroundColor': config.COLORS['bg_card'],
-                        'color': config.COLORS['text_primary']
-                    }
-                )
-            ])
-        ]),
-
-        # Main Content Area
-        html.Main(style={'flex': '1'}, children=[
-            # Map
-            html.Div(style={'marginBottom': '20px'}, children=[
-                html.Section(style={**CARD_STYLE, 'height': '500px'}, children=[
-                    html.Label("MAPA MUNDIAL INTERACTIVO (Haz clic en un país)", style={
-                        'fontSize': '11px',
-                        'fontWeight': '600',
-                        'color': config.COLORS['text_secondary'],
-                        'letterSpacing': '1px',
-                        'marginBottom': '10px',
-                        'display': 'block'
-                    }),
-                    dcc.Loading(
-                        id="loading-map",
-                        type="circle",
-                        color=config.COLORS['accent_blue'],
-                        children=html.Div(id='map-container', style={'height': 'calc(100% - 30px)'})
-                    )
-                ])
-            ]),
-
-            # Charts Row
-            html.Div(style={'display': 'flex'}, children=[
-                # Trend Chart
-                html.Section(style={
-                    **CARD_STYLE,
-                    'height': '350px',
-                    'marginRight': '20px',
-                    'flex': '1'
-                }, children=[
-                    dcc.Loading(
-                        id="loading-trend",
-                        type="circle",
-                        color=config.COLORS['accent_blue'],
-                        children=html.Div(id='trend-chart', style={'height': '100%'})
-                    )
-                ]),
-
-                # Comparison Chart
-                html.Section(style={
-                    **CARD_STYLE,
-                    'height': '350px',
-                    'flex': '1'
-                }, children=[
-                    dcc.Loading(
-                        id="loading-comparison",
-                        type="circle",
-                        color=config.COLORS['accent_blue'],
-                        children=html.Div(id='comparison-chart', style={'height': '100%'})
-                    )
-                ])
-            ])
-        ])
-    ]),
-
-    # Interval for updates
-    dcc.Interval(id='interval', interval=config.UPDATE_INTERVAL_MS, n_intervals=0)
-
-], style={
-    'backgroundColor': config.COLORS['bg_dark'],
-    'color': config.COLORS['text_primary'],
-    'minHeight': '100vh',
-    'margin': '0',
-    'padding': '0'
-})
-
-
-# ============================================================================
-# CALLBACKS
-# ============================================================================
-
-# --- BLOQUE MODIFICADO PARA BÚSQUEDA POR ISO ---
 @app.callback(
-    [Output('country-select', 'options'),
-     Output('compare-countries', 'options'),
-     Output('update-time', 'children')],
-    [Input('interval', 'n_intervals')]
+    Output('store-countries', 'data'),
+    Input('interval-component', 'n_intervals')
 )
-def load_countries(n: int) -> Tuple[List[Dict[str, str]], List[Dict[str, str]], str]:
-    """Carga lista de países (permitiendo búsqueda por nombre o ISO)."""
-    logger.info(f"Callback: load_countries (interval={n})")
-    start_time = time.time()
+def load_initial_data(n):
+    if n > 0 and callback_context.triggered_id == 'interval-component':
+         return no_update
 
-    # response_data será un DICT en caso de éxito, o una LISTA VACÍA [] en caso de fallo
-    response_data = api.get_countries()
-    timestamp = datetime.now().strftime('%H:%M:%S')
-
-    countries_list = []
-    options = []
-
-    # 1. Comprobar si la respuesta es un diccionario (éxito de la API)
-    if isinstance(response_data, dict):
-        countries_list = response_data.get('countries', [])
-    # Si no es un dict, response_data es [] (fallo de API), y countries_list permanecerá vacía
-
-    # 2. Comprobar si la lista de países (extraída o vacía) tiene contenido
-    if countries_list:
-        # La 'label' incluye el nombre y el iso_code para la búsqueda.
-        # El 'value' sigue siendo solo el nombre para compatibilidad.
-        options = sorted(
-            [
-                {
-                    'label': f"{c.get('name', 'Unknown')} ({c.get('iso_code', 'N/A')})",
-                    'value': c.get('name')
-                }
-                for c in countries_list if c.get('name') and c.get('iso_code')
-            ],
-            key=lambda x: x['label']
-        )
+    logger.info("Cargando lista de países...")
+    data = api.get_countries()
+    if data and isinstance(data, dict) and 'countries' in data:
+        logger.info(f"Países cargados: {len(data['countries'])}")
+        return data['countries']
+    elif data and isinstance(data, dict) and 'error' in data:
+         logger.error(f"Error cargando países: {data['error']}")
+         return []
     else:
-        logger.warning("No se pudieron cargar países (API falló o la lista está vacía)")
-        options = [{'label': f"{config.DEFAULT_COUNTRY} (Default)", 'value': config.DEFAULT_COUNTRY}]
+         logger.error(f"Respuesta inesperada o error desconocido cargando países: {data}")
+         return []
 
 
-    elapsed = time.time() - start_time
-    logger.info(f"load_countries completado en {elapsed:.2f}s, {len(options)} opciones generadas")
+@app.callback( Output('api-status', 'children'), Output('api-status', 'style'), Input('interval-component', 'n_intervals'))
+def update_api_status(n):
+    data = api.get_countries()
+    base_style = {'fontSize':'11px','padding':'6px 12px','color':'white','borderRadius':'20px','fontWeight':'600'}
+    if data and isinstance(data, dict) and 'countries' in data:
+        style = {**base_style, 'background': config.COLORS['accent_green']}
+        return "🟢 API Conectada", style
+    else:
+        style = {**base_style, 'background': config.COLORS['accent_red']}
+        error_msg = data.get('error', 'Desconectada') if isinstance(data, dict) else 'Respuesta inválida'
+        logger.warning(f"Estado API: {error_msg}")
+        return f"🔴 API ({error_msg})", style
 
-    return options, options, f"Actualizado: {timestamp}"
-# --- FIN DE BLOQUE MODIFICADO ---
 
+# ============================================================================
+# CALLBACKS PARA CONTENIDO DE TABS (Sin cambios)
+# ============================================================================
+@app.callback(Output('tabs-content', 'children'), Input('main-tabs', 'value'))
+def render_tab_content(active_tab):
+    logger.debug(f"Renderizando pestaña: {active_tab}")
+    if active_tab == 'tab-overview':
+        return create_overview_layout()
+    elif active_tab == 'tab-timeseries':
+        return create_timeseries_layout()
+    elif active_tab == 'tab-comparisons':
+        return create_comparisons_layout()
+    elif active_tab == 'tab-statistics':
+        return create_statistics_layout()
+    elif active_tab == 'tab-correlations':
+        return create_correlations_layout()
+    logger.warning(f"Intento de renderizar pestaña desconocida: {active_tab}")
+    return html.Div(f"Contenido no disponible para {active_tab}")
 
-@app.callback(
-    Output('main-stats', 'children'),
-    [Input('country-select', 'value')]
-)
-def update_stats(country: Optional[str]) -> html.Div:
-    """Actualiza estadísticas del país."""
-    logger.info(f"Callback: update_stats (country={country})")
+# ============================================================================
+# LAYOUTS
+# ============================================================================
+# ========================================================================
+# >>>>> LAYOUT MODIFICADO (SIN RANGO DE FECHAS) <<<<<
+# ========================================================================
+def create_overview_layout():
+     logger.debug("Creando layout: Vista General")
+     return html.Div([
+        html.H2("Vista General Global", style={'fontSize':'22px','fontWeight':'700','color':config.COLORS['text_primary'],'marginBottom':'20px'}),
 
-    if not country:
-        country = config.DEFAULT_COUNTRY
+        # --- Controles de Vista General ELIMINADOS ---
 
-    summary = api.get_summary(country)
+        dcc.Loading(id="loading-global-cards", children=html.Div(id='global-metrics-cards', style={'marginBottom':'30px'})),
 
-    if not summary:
-        return html.Div([
-            html.Div("⚠️", style={'fontSize': '36px', 'marginBottom': '10px'}),
-            html.Div(f"No hay datos para {country}", style={
-                'color': config.COLORS['text_primary'],
-                'fontSize': '13px'
-            })
-        ], style={'textAlign': 'center', 'paddingTop': '50px', **CARD_STYLE})
-
-    return html.Div([
-        # Cases Card
-        html.Div(style={**STAT_CARD_STYLE, 'marginBottom': '15px'}, children=[
-            html.Div("CASOS CONFIRMADOS", style={
-                'fontSize': '11px',
-                'fontWeight': '600',
-                'color': config.COLORS['text_secondary'],
-                'letterSpacing': '1px',
-                'marginBottom': '10px'
-            }),
-            html.Div(fmt(summary.get('total_cases')), style={
-                'fontSize': '36px',
-                'fontWeight': '700',
-                'color': config.COLORS['accent_blue'],
-                'marginBottom': '5px',
-                'lineHeight': '1'
-            }),
-            html.Div(f"Población: {fmt(summary.get('population'))}", style={
-                'fontSize': '12px',
-                'color': config.COLORS['text_secondary']
-            })
-        ]),
-
-        # Deaths & Vaccinated Row
-        html.Div(style={'display': 'flex', 'marginBottom': '15px'}, children=[
-            html.Div(style={**STAT_CARD_STYLE, 'marginRight': '10px', 'flex': '1'}, children=[
-                html.Div("MUERTES", style={
-                    'fontSize': '10px',
-                    'fontWeight': '600',
-                    'color': config.COLORS['text_secondary'],
-                    'letterSpacing': '1px',
-                    'marginBottom': '8px'
-                }),
-                html.Div(fmt(summary.get('total_deaths')), style={
-                    'fontSize': '24px',
-                    'fontWeight': '700',
-                    'color': config.COLORS['accent_red'],
-                    'marginBottom': '3px'
-                }),
-                html.Div(f"Mortalidad: {summary.get('mortality_rate', 0):.2f}%", style={
-                    'fontSize': '11px',
-                    'color': config.COLORS['text_secondary']
-                })
-            ]),
-
-            html.Div(style={**STAT_CARD_STYLE, 'flex': '1'}, children=[
-                html.Div("VACUNADOS (COMPLETO)", style={
-                    'fontSize': '10px',
-                    'fontWeight': '600',
-                    'color': config.COLORS['text_secondary'],
-                    'letterSpacing': '1px',
-                    'marginBottom': '8px'
-                }),
-                html.Div(f"{summary.get('vaccination_rate', 0):.1f}%", style={
-                    'fontSize': '24px',
-                    'fontWeight': '700',
-                    'color': config.COLORS['accent_green'],
-                    'marginBottom': '3px'
-                }),
-                html.Div(f"({fmt(summary.get('people_fully_vaccinated'))})", style={
-                    'fontSize': '11px',
-                    'color': config.COLORS['text_secondary']
-                })
-            ])
-        ]),
-
-        # Additional Info
-        html.Div(style={
-            'textAlign': 'center',
-            'padding': '15px',
-            'backgroundColor': '#f9fafb',
-            'borderRadius': '8px',
-            'border': f"1px solid {config.COLORS['border']}"
-        }, children=[
-            html.Div(f"📍 Continente: {summary.get('continent', 'N/A')}", style={
-                'fontSize': '12px',
-                'color': config.COLORS['text_secondary'],
-                'marginBottom': '5px'
-            }),
-            html.Div(f"🗓️ Última Actualización: {summary.get('latest_date', 'N/A')}", style={
-                'fontSize': '12px',
-                'color': config.COLORS['text_secondary'],
-                'marginBottom': '5px'
-            }),
-            html.Div(f"🌍 ISO Code: {summary.get('iso_code', 'N/A')}", style={
-                'fontSize': '12px',
-                'color': config.COLORS['text_secondary']
-            })
+        html.Div([
+            html.Div([
+                html.H3("🗺️ Distribución Global", style={'fontSize':'16px','fontWeight':'600','marginBottom':'15px','color':config.COLORS['text_primary']}),
+                html.Div([
+                    dcc.Dropdown(
+                        id='map-metric-selector',
+                        options=[{'label':v,'value':k} for k,v in config.METRICS.items() if k != 'population'],
+                        value='total_cases',
+                        clearable=False,
+                        style={'marginBottom':'15px'},
+                        persistence=True,
+                        persistence_type='local'
+                    ),
+                    dcc.Loading(id='loading-map', type='default', children=html.Div(id='world-map', children=dcc.Graph(figure=go.Figure())))
+                ])
+            ], style={**get_card_style(), 'marginBottom':'20px'}),
+            html.Div([
+                html.H3("🏆 Top 10 Países", style={'fontSize':'16px','fontWeight':'600','marginBottom':'15px','color':config.COLORS['text_primary']}),
+                dcc.Loading(id='loading-top-countries', type='default', children=html.Div(id='top-countries-chart', children=dcc.Graph(figure=go.Figure())))
+            ], style=get_card_style())
         ])
     ])
+# ========================================================================
+# >>>>> FIN LAYOUT MODIFICADO <<<<<
+# ========================================================================
 
+def create_timeseries_layout():
+    """Crea el layout para la pestaña de evolución por país."""
+    logger.debug("Creando layout: Evolución por País")
 
-@app.callback(
-    Output('continent-metrics-box', 'children'),
-    Input('interval', 'n_intervals')
-)
-def update_continent_metrics(n: int) -> html.Div:
-    """Actualiza métricas de continentes."""
-    logger.info(f"Callback: update_continent_metrics (interval={n})")
+    total_or_static_metrics = [
+        'total_cases', 'total_deaths', 'total_cases_per_100k', 'total_deaths_per_100k',
+        'population'
+    ]
+    line_chart_metrics = {k: v for k, v in config.METRICS.items() if k not in total_or_static_metrics}
+    flat_line_chart_options = [{"label": v, "value": k} for k, v in line_chart_metrics.items()]
 
-    data = api.get_continent_metrics()
+    return html.Div([
+        html.H2("Evolución de Métricas por País", style={'fontSize':'22px','fontWeight':'700','color':config.COLORS['text_primary'],'marginBottom':'20px'}),
 
-    if not data:
-        return html.Div("No hay datos de continentes disponibles.", style={
-            'fontSize': '11px',
-            'color': config.COLORS['text_secondary'],
-            'padding': '20px 0'
-        })
+        html.Div([
+            html.Div([
+                html.Label("País Seleccionado", style={'fontSize':'12px','fontWeight':'600','marginBottom':'5px'}),
+                dcc.Dropdown(
+                    id='ts-country-selector',
+                    options=[], value=None, clearable=False,
+                    persistence=True, persistence_type='local'
+                )
+            ], style={'width':'30%', 'marginRight':'15px'}),
+            html.Div([
+                html.Label("Métricas a Graficar", style={'fontSize':'12px','fontWeight':'600','marginBottom':'5px'}),
+                dcc.Dropdown(
+                    id='ts-metrics-selector',
+                    options=flat_line_chart_options,
+                    value=['new_cases_smoothed', 'new_deaths_smoothed'],
+                    multi=True, placeholder="Selecciona métricas...",
+                    persistence=True, persistence_type='local'
+                )
+            ], style={'width':'45%', 'marginRight':'15px'}),
+            html.Div([
+                html.Label("Rango de Fechas", style={'fontSize':'12px','fontWeight':'600','marginBottom':'5px'}),
+                dcc.DatePickerRange(
+                    id='ts-date-picker',
+                    min_date_allowed=date(2020, 1, 1), max_date_allowed=date.today(),
+                    start_date=date(2020, 3, 1), end_date=date.today(),
+                    display_format='YYYY-MM-DD', style={'width': '100%'}
+                )
+            ], style={'width':'25%'})
+        ], style={**get_card_style('15px'), 'display':'flex', 'alignItems':'flex-end', 'marginBottom':'10px'}),
 
-    try:
-        sorted_items = sorted(
-            data.items(),
-            key=lambda item: item[1].get('total_cases', 0) if isinstance(item[1], dict) else 0,
-            reverse=True
-        )
-        sorted_data = dict(sorted_items)
-    except Exception as e:
-        logger.error(f"Error ordenando datos de continentes: {e}")
-        sorted_data = data
+        html.Div([
+             html.Div([
+                dcc.Checklist(
+                    id='ts-log-scale', options=[{'label':' Usar escala logarítmica','value':'log'}],
+                    value=[], style={'marginTop':'8px'}
+                )
+             ], style={'flex':'1'}),
+             html.Div([
+                html.Button("Descargar CSV", id="btn-download-ts", n_clicks=0, style={'padding':'8px 12px', 'cursor':'pointer'}),
+                dcc.Download(id="download-timeseries-csv")
+             ], style={'textAlign':'right'})
+        ], style={'display':'flex', 'alignItems':'center', 'marginBottom':'20px', 'padding':'0 10px'}),
 
-    return create_aggregate_table(sorted_data)
-
-
-@app.callback(
-    Output('map-container', 'children'),
-    [Input('map-metric', 'value')]
-)
-def update_map(metric: Optional[str]) -> Union[dcc.Graph, html.Div]:
-    """Actualiza mapa mundial."""
-    logger.info(f"Callback: update_map (metric={metric})")
-
-    if not metric:
-        metric = 'total_cases'
-
-    try:
-        map_data = api.get_map_data(metric)
-
-        if not map_data or not map_data.get('data'):
-            return html.Div("⚠️ No hay datos disponibles para el mapa.", style={
-                'textAlign': 'center',
-                'padding': '100px 40px',
-                'color': config.COLORS['text_secondary'],
-                'fontSize': '14px'
-            })
-
-        locations = []
-        values = []
-        country_names = []
-
-        for item in map_data['data']:
-            iso = item.get('iso_code')
-            val = item.get('value')
-            country_name = item.get('country', 'N/A')
-
-            if iso and val is not None:
-                locations.append(iso)
-                values.append(val)
-                country_names.append(country_name)
-
-        if not locations:
-            return html.Div("⚠️ No hay países con datos válidos.", style={
-                'textAlign': 'center',
-                'padding': '100px 40px',
-                'color': config.COLORS['text_secondary'],
-                'fontSize': '14px'
-            })
-
-        fig = go.Figure(data=go.Choropleth(
-            locations=locations,
-            z=values,
-            locationmode='ISO-3',
-            colorscale=[
-                [0, '#E6F7FF'], [0.1, '#B3E0FF'], [0.3, '#80C9FF'],
-                [0.5, '#FFDDAA'], [0.7, '#FFBB77'], [1, '#FF9944']
-            ],
-            marker_line_color=config.COLORS['border'],
-            marker_line_width=0.5,
-            colorbar=dict(
-                title="",
-                thickness=15,
-                len=0.6,
-                x=0.95,
-                y=0.7,
-                tickfont=dict(color=config.COLORS['text_primary'], size=10),
-                bgcolor='rgba(255,255,255,0.7)',
-                tickformat=','
-            ),
-            customdata=country_names,
-            hovertemplate=(
-                '<b>%{customdata}</b><br>'
-                f'{get_metric_name(metric)}: %{{z:,.0f}}'
-                '<extra></extra>'
+        html.Div([
+            html.H3("📈 Gráfico de Series de Tiempo", style={'fontSize':'16px','fontWeight':'600','marginBottom':'15px','color':config.COLORS['text_primary']}),
+            dcc.Loading(id='loading-timeseries-chart', type='default',
+                children=html.Div(dcc.Graph(id='timeseries-line-chart', figure=go.Figure()))
             )
-        ))
+        ], style=get_card_style())
+    ])
 
-        fig.update_layout(
-            title=dict(
-                text=f"<b>{get_metric_name(metric).upper()} POR PAÍS</b>",
-                y=0.95,
-                x=0.5,
-                xanchor='center',
-                yanchor='top',
-                font=dict(size=14, color=config.COLORS['text_primary'])
-            ),
-            geo=dict(
-                showframe=False,
-                showcoastlines=True,
-                projection_type='natural earth',
-                bgcolor=config.COLORS['bg_card'],
-                landcolor='#f9fafb',
-                oceancolor="#1d87cd", # Un azul más suave para el océano
-                subunitcolor=config.COLORS['border']
-            ),
-            paper_bgcolor=config.COLORS['bg_card'],
-            margin=dict(t=50, r=10, b=10, l=10),
-            height=450, # Ajustado para que quepa bien
-            font=dict(color=config.COLORS['text_primary'])
-        )
+def create_comparisons_layout():
+    logger.debug("Creando layout: Comparaciones")
+    return html.Div([
+        html.H2("Comparación entre Países", style={'fontSize':'22px','fontWeight':'700','color':config.COLORS['text_primary'],'marginBottom':'20px'}),
 
-        return dcc.Graph(
-            id='world-map-graph',
-            figure=fig,
-            config={'displayModeBar': False},
-            style={'height': 'calc(100% - 10px)'} # Ajuste para padding
-        )
+        html.Div([
+            html.Div([
+                html.Label("Métrica", style={'fontSize':'12px','fontWeight':'600','marginBottom':'5px'}),
+                dcc.Dropdown(
+                    id='comparison-metric-selector', options=[{'label':v,'value':k} for k,v in config.METRICS.items()],
+                    value='total_cases', clearable=False,
+                    persistence=True, persistence_type='local'
+                )
+            ], style={'width':'40%', 'marginRight':'15px'}),
+            html.Div([
+                html.Label("Selecciona Países", style={'fontSize':'12px','fontWeight':'600','marginBottom':'5px'}),
+                dcc.Dropdown(
+                    id='comparison-locations-selector', options=[], value=None, multi=True,
+                    placeholder="Selecciona países...",
+                    persistence=True, persistence_type='local'
+                )
+            ], style={'width':'60%'}),
+        ], style={**get_card_style('15px'), 'display':'flex', 'alignItems':'flex-end'}),
 
-    except Exception as e:
-        logger.exception(f"Error generando mapa: {e}")
-        return html.Div([
-            html.Div("❌ Error al Cargar Mapa", style={
-                'fontSize': '16px',
-                'fontWeight': '600',
-                'color': config.COLORS['accent_red'],
-                'marginBottom': '10px'
-            }),
-            html.Div(f"Detalle: {str(e)}", style={
-                'fontSize': '11px',
-                'color': config.COLORS['text_secondary']
-            })
-        ], style={'textAlign': 'center', 'padding': '100px 40px'})
+        html.Div([
+                html.Button("Descargar CSV", id="btn-download-comp", n_clicks=0, style={'padding':'8px 12px', 'cursor':'pointer', 'marginTop':'-10px'}),
+                dcc.Download(id="download-comparison-csv")
+        ], style={'textAlign':'right', 'paddingRight':'10px', 'marginBottom':'10px'}),
 
+        html.Div([
+            html.H3("📊 Comparación", style={'fontSize':'16px','fontWeight':'600','marginBottom':'15px','color':config.COLORS['text_primary']}),
+            dcc.Loading(id='loading-comparison-chart', type='default', children=html.Div(id='comparison-chart', children=dcc.Graph(figure=go.Figure())))
+        ], style=get_card_style())
+    ])
+
+def create_statistics_layout():
+    logger.debug("Creando layout: Estadísticas")
+    return html.Div([
+        html.H2("Análisis Estadístico Global", style={'fontSize':'22px','fontWeight':'700','color':config.COLORS['text_primary'],'marginBottom':'20px'}),
+        html.Div([
+            html.Div([
+                html.Label("Métrica", style={'fontSize':'12px','fontWeight':'600','marginBottom':'5px'}),
+                dcc.Dropdown(
+                    id='stats-metric-selector', options=[{'label':v,'value':k} for k,v in config.METRICS.items() if k != 'population'],
+                    value='total_cases', clearable=False,
+                    persistence=True, persistence_type='local'
+                )
+            ], style={'width':'60%', 'marginRight':'15px'}),
+            html.Div([
+                html.Label("Outliers", style={'fontSize':'12px','fontWeight':'600','marginBottom':'5px'}),
+                dcc.Checklist(
+                    id='stats-include-outliers', options=[{'label':' Incluir outliers','value':'yes'}],
+                    value=[], style={'marginTop':'8px'}
+                )
+            ], style={'width':'40%'})
+        ], style={**get_card_style('15px'), 'display':'flex', 'alignItems':'flex-end', 'marginBottom':'20px'}),
+        html.Div([
+            html.H3("📊 Estadísticas Descriptivas Globales", style={'fontSize':'16px','fontWeight':'600','marginBottom':'15px','color':config.COLORS['text_primary']}),
+            dcc.Loading(id='loading-statistics', type='default', children=html.Div(id='statistics-display'))
+        ], style=get_card_style())
+    ])
+
+def create_correlations_layout():
+     logger.debug("Creando layout: Correlaciones")
+     return html.Div([
+        html.H2("Análisis de Correlaciones Globales", style={'fontSize':'22px','fontWeight':'700','color':config.COLORS['text_primary'],'marginBottom':'20px'}),
+        html.Div([ html.P("Analiza las relaciones globales entre métricas a nivel de país.", style={'fontSize':'13px','color':config.COLORS['text_secondary'],'marginBottom':'15px'}) ], className='info-message'),
+        html.Div([
+             html.Div([
+                 html.Label("Métricas a Comparar", style={'fontSize':'12px','fontWeight':'600','marginBottom':'5px'}),
+                 dcc.Dropdown(
+                     id='correlation-metrics-selector', options=[{'label':v,'value':k} for k,v in config.METRICS.items()],
+                     value=['total_cases_per_100k', 'total_deaths_per_100k', 'mortality_rate'],
+                     multi=True, placeholder="Selecciona >= 2 métricas...",
+                     persistence=True, persistence_type='local'
+                 )
+             ], style={'width':'70%', 'marginRight':'15px'}),
+             html.Div([
+                 html.Label("Método", style={'fontSize':'12px','fontWeight':'600','marginBottom':'5px'}),
+                 dcc.Dropdown(
+                     id='correlation-method', options=[{'label':'Pearson','value':'pearson'},{'label':'Spearman','value':'spearman'}],
+                     value='pearson', clearable=False,
+                     persistence=True, persistence_type='local'
+                 )
+             ], style={'width':'30%'})
+        ], style={**get_card_style('15px'), 'display':'flex', 'alignItems':'flex-end', 'marginBottom':'20px'}),
+        html.Div([
+            html.H3("🔗 Matriz de Correlación Global", style={'fontSize':'16px','fontWeight':'600','marginBottom':'15px','color':config.COLORS['text_primary']}),
+            dcc.Loading(id='loading-correlation-matrix', type='default', children=html.Div(id='correlation-matrix-heatmap', children=dcc.Graph(figure=go.Figure())))
+        ], style=get_card_style())
+    ])
+
+# ============================================================================
+# CALLBACKS DE VISUALIZACIÓN
+# ============================================================================
+
+# --- CALLBACKS PARA POBLAR SELECTORES ---
+@app.callback(
+    Output('ts-country-selector', 'options'),
+    Output('ts-country-selector', 'value'),
+    Input('store-countries', 'data'),
+    State('ts-country-selector', 'value')
+)
+def update_timeseries_country_selector(countries_data, persisted_value):
+    if not countries_data:
+        logger.warning("No hay datos de países en store para poblar selector ts-country.")
+        return [], None
+
+    options = [{'label': c, 'value': c} for c in countries_data]
+
+    current_value = persisted_value if persisted_value and persisted_value in countries_data else None
+
+    if not current_value:
+        current_value = 'Ecuador' if 'Ecuador' in countries_data else (countries_data[0] if countries_data else None)
+
+    logger.debug(f"Actualizando selector ts-country. Opciones: {len(options)}, Valor: {current_value}")
+    return options, current_value
 
 @app.callback(
-    Output('country-select', 'value'),
-    Input('world-map-graph', 'clickData'),
-    State('country-select', 'value'),
-    prevent_initial_call=True
+    Output('comparison-locations-selector', 'options'),
+    Output('comparison-locations-selector', 'value'),
+    Input('store-countries', 'data'),
+    State('comparison-locations-selector', 'value')
 )
-def update_country_from_map(clickData: Optional[Dict[str, Any]],
-                            current_country: Optional[str]) -> Union[str, Any]:
-    """Actualiza país seleccionado al hacer clic en el mapa."""
-    if not clickData:
-        return no_update
+def update_comparison_country_selector(countries_data, persisted_value):
+    if not countries_data:
+        logger.warning("No hay datos de países en store para poblar selector comparison-locations.")
+        return [], []
 
-    try:
-        country_name = clickData['points'][0]['customdata']
-        logger.info(f"Map click: {country_name}")
+    options = [{'label': c, 'value': c} for c in countries_data]
 
-        if country_name and country_name != current_country:
-            return country_name
-        return no_update
+    current_value = []
+    if persisted_value and isinstance(persisted_value, list): # Asegurar que es lista
+        current_value = [c for c in persisted_value if c in countries_data]
 
-    except (KeyError, IndexError, TypeError) as e:
-        logger.warning(f"Error procesando clickData: {e}")
-        return no_update
+    if not current_value:
+        default_value_list = ['Ecuador', 'Peru', 'Colombia']
+        current_value = [c for c in default_value_list if c in countries_data]
+        if not current_value and countries_data:
+            current_value = [countries_data[0]]
+
+    logger.debug(f"Actualizando selector comparison-locations. Opciones: {len(options)}, Valor: {current_value}")
+    return options, current_value
 
 
+# ========================================================================
+# >>>>> CALLBACK MODIFICADO (SIN INPUTS DE FECHA) <<<<<
+# ========================================================================
 @app.callback(
-    Output('date-range', 'end_date'),
-    Input('date-range', 'start_date'),
-    Input('trend-metric-select', 'value'),
-    State('date-range', 'end_date'),
-    prevent_initial_call=True
+    Output('global-metrics-cards','children'),
+    Input('interval-component','n_intervals') # Solo depende del intervalo
 )
-def auto_update_end_date(start_date_str: Optional[str],
-                         selected_metric: Optional[str],
-                         current_end_date_str: Optional[str]) -> Union[str, Any]:
-    """Auto-ajusta fecha final si la fecha de inicio cambia."""
-    # (Esta función puede necesitar ajustes si quieres que reaccione a la métrica también)
-    if not start_date_str or not current_end_date_str:
-         return no_update
+def update_global_metrics(n):
+    data = api.get_global_summary()
 
-    try:
-         start_date_obj = date.fromisoformat(start_date_str)
-         current_end_date_obj = date.fromisoformat(current_end_date_str)
+    if not data or isinstance(data, dict) and data.get("error"):
+        error_msg = data.get("error", "Error desconocido") if isinstance(data, dict) else "Error desconocido"
+        return html.Div(f"⚠️ No se pudieron cargar métricas globales: {error_msg}", className='warning-message')
 
-         # Si la fecha final es anterior a la inicial, ajustarla
-         if current_end_date_obj < start_date_obj:
-             new_end_date_obj = start_date_obj + timedelta(days=1) # O cualquier lógica deseada
-             max_allowed = date.today()
-             if new_end_date_obj > max_allowed:
-                 new_end_date_obj = max_allowed
-             new_end_date_str = new_end_date_obj.isoformat()
-             logger.info(f"Auto-updating end date to {new_end_date_str} because it was before start date")
-             return new_end_date_str
+    tc=data.get('total_cases',0); td=data.get('total_deaths',0); ca=data.get('countries_affected',0)
 
-         return no_update
+    data_pop = api.get_map_data('population')
+    tp = 0
+    if data_pop and isinstance(data_pop, dict) and 'data' in data_pop:
+        tp = sum(item.get('value', 0) for item in data_pop['data'] if item and item.get('value') is not None) # Más robusto
 
-    except (ValueError, TypeError) as e:
-         logger.warning(f"Error auto-updating date: {e}")
-         return no_update
+    return html.Div([
+        html.Div([html.Div([html.Span("😷",style={'fontSize':'24px'}),html.Div([html.Div("CASOS TOTALES",className='stat-header'),html.Div(fmt(tc),className='stat-value',style={'color':config.COLORS['accent_blue']}),html.Div(f"{ca} países/territorios",className='stat-subvalue')])],style={'display':'flex','alignItems':'center','gap':'15px'})], style={**get_card_style('20px'),'flex':'1','marginRight':'15px'}),
+        html.Div([html.Div([html.Span("💀",style={'fontSize':'24px'}),html.Div([html.Div("MUERTES TOTALES",className='stat-header'),html.Div(fmt(td),className='stat-value',style={'color':config.COLORS['accent_red']}),html.Div(f"Tasa: {(td/tc*100):.2f}%" if tc and tc>0 else "N/A",className='stat-subvalue')])],style={'display':'flex','alignItems':'center','gap':'15px'})], style={**get_card_style('20px'),'flex':'1','marginRight':'15px'}),
+        html.Div([html.Div([html.Span("👥",style={'fontSize':'24px'}),html.Div([html.Div("POBLACIÓN TOTAL",className='stat-header'),html.Div(fmt(tp),className='stat-value',style={'color':config.COLORS['accent_green']}),html.Div("Suma de países",className='stat-subvalue')])],style={'display':'flex','alignItems':'center','gap':'15px'})], style={**get_card_style('20px'),'flex':'1'})
+    ], style={'display':'flex','marginBottom':'20px'})
+# ========================================================================
+# >>>>> FIN CALLBACK MODIFICADO <<<<<
+# ========================================================================
 
-
+# ========================================================================
+# >>>>> CALLBACK MODIFICADO (SIN INPUTS DE FECHA) <<<<<
+# ========================================================================
 @app.callback(
-    Output('trend-chart', 'children'),
-    [Input('country-select', 'value'),
-     Input('trend-metric-select', 'value'),
-     Input('date-range', 'start_date'),
-     Input('date-range', 'end_date')]
+    Output('world-map','children'),
+    Input('map-metric-selector','value') # Solo depende de la métrica
 )
-def update_trend(country: Optional[str], selected_metric: Optional[str],
-                 start_date: Optional[str], end_date: Optional[str]) -> Union[dcc.Graph, html.Div]:
-    """Actualiza gráfico de tendencia."""
-    logger.info(f"Callback: update_trend (country={country}, metric={selected_metric})")
+def update_world_map(metric):
+    if not metric: return no_update
 
-    if not country:
-        country = config.DEFAULT_COUNTRY
-    if not selected_metric:
-        selected_metric = 'new_cases_smoothed'
+    data = api.get_map_data(metric)
 
-    data = api.get_timeseries(country, selected_metric, start_date, end_date)
+    if not data or isinstance(data, dict) and data.get("error"):
+        error_msg = data.get("error", "Error desconocido") if isinstance(data, dict) else "Error desconocido"
+        return html.Div(f"⚠️ No hay datos de mapa: {error_msg}", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
 
-    if not data or not data.get('data'):
-        return html.Div(f"📈 No hay datos de '{get_metric_name(selected_metric)}' para {country}.", style={
-            'textAlign': 'center',
-            'paddingTop': '120px',
-            'color': config.COLORS['text_secondary'],
-            'fontSize': '14px'
-        })
+    if 'data' not in data:
+         return html.Div(f"⚠️ Respuesta inesperada de API para mapa: {data}", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
 
-    try:
-        dates = [d['date'] for d in data['data']]
-        values = [d.get('value', 0) or 0 for d in data['data']] # Manejo de None o 0
-    except (KeyError, TypeError) as e:
-        logger.error(f"Error procesando datos timeseries: {e}")
-        return html.Div("❌ Error procesando datos.", style={
-            'textAlign': 'center',
-            'paddingTop': '120px',
-            'color': config.COLORS['accent_red'],
-            'fontSize': '14px'
-        })
+    map_data = data['data'];
+    if not map_data: return html.Div("⚠️ Sin datos para esta métrica", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
 
-    fig = go.Figure()
+    df = pd.DataFrame(map_data);
+    if df.empty or 'value' not in df.columns or df['value'].isnull().all():
+         return html.Div("⚠️ Datos insuficientes para generar el mapa", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
 
-    line_color = config.COLORS['accent_blue']
-    if 'death' in selected_metric.lower():
-        line_color = config.COLORS['accent_red']
-    elif 'vaccin' in selected_metric.lower():
-        line_color = config.COLORS['accent_green']
+    fig = px.choropleth(df, locations='iso_code', color='value', hover_name='country', color_continuous_scale='Blues', labels={'value':config.METRICS.get(metric, metric)})
+    fig.update_layout(geo=dict(showframe=False,showcoastlines=True,projection_type='equirectangular'), margin=dict(l=0,r=0,t=0,b=0), height=450, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'])
+    return dcc.Graph(figure=fig, config={'displayModeBar':False})
+# ========================================================================
+# >>>>> FIN CALLBACK MODIFICADO <<<<<
+# ========================================================================
 
-    fig.add_trace(go.Scatter(
-        x=dates,
-        y=values,
-        mode='lines',
-        name=get_metric_name(selected_metric),
-        line=dict(color=line_color, width=2.5),
-        fill='tozeroy',
-        fillcolor=f"rgba({int(line_color[1:3], 16)}, {int(line_color[3:5], 16)}, {int(line_color[5:7], 16)}, 0.1)",
-        hovertemplate='%{y:,.0f}<extra></extra>'
-    ))
+# ========================================================================
+# >>>>> CALLBACK MODIFICADO (SIN INPUTS DE FECHA) <<<<<
+# ========================================================================
+@app.callback(
+    Output('top-countries-chart','children'),
+    Input('map-metric-selector','value') # Solo depende de la métrica
+)
+def update_top_countries(metric):
+    if not metric: return no_update
 
-    metric_title = get_metric_name(selected_metric)
-    subtitle = f"{country}" + (" - Promedio Móvil 7 Días" if "smoothed" in selected_metric else "")
+    data = api.get_map_data(metric)
 
-    fig.update_layout(
-        title=dict(
-            text=f"<b>TENDENCIA: {metric_title.upper()}</b><br><span style='font-size:11px;color:{config.COLORS['text_secondary']}'>{subtitle}</span>",
-            x=0.5,
-            y=0.95,
-            xanchor='center',
-            yanchor='top',
-            font=dict(size=14, color=config.COLORS['text_primary'])
-        ),
-        xaxis=dict(
-            showgrid=True,
-            gridcolor=config.COLORS['grid'],
-            showline=False,
-            tickfont=dict(size=10, color=config.COLORS['text_secondary'])
-        ),
-        yaxis=dict(
-            showgrid=True,
-            gridcolor=config.COLORS['grid'],
-            showline=False,
-            tickfont=dict(size=10, color=config.COLORS['text_secondary']),
-            tickformat=','
-        ),
-        plot_bgcolor=config.COLORS['bg_card'],
-        paper_bgcolor=config.COLORS['bg_card'],
-        margin=dict(t=65, r=20, b=40, l=60),
-        height=310, # Ajustado para que quepa bien
-        hovermode='x unified',
-        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
-        font=dict(color=config.COLORS['text_primary'])
-    )
+    if not data or isinstance(data, dict) and data.get("error"):
+        error_msg = data.get("error", "Error desconocido") if isinstance(data, dict) else "Error desconocido"
+        return html.Div(f"⚠️ No hay datos de ranking: {error_msg}", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
 
-    return dcc.Graph(figure=fig, config={'displayModeBar': False}, style={'height': '100%'})
+    if 'data' not in data:
+         return html.Div(f"⚠️ Respuesta inesperada de API para ranking: {data}", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
+
+    ranking_data = data['data'];
+    if not ranking_data: return html.Div("⚠️ Sin datos para métrica", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
+
+    df = pd.DataFrame(ranking_data);
+    if df.empty or 'value' not in df.columns:
+        return html.Div("⚠️ Datos insuficientes para generar ranking", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
+
+    df = df.dropna(subset=['value'])
+    df_sorted = df.sort_values(by='value',ascending=False);
+    top_10 = df_sorted.head(10)
+
+    if top_10.empty:
+        return html.Div("⚠️ Sin datos suficientes para el Top 10", style={'textAlign':'center','padding':'40px','color':config.COLORS['text_secondary']})
+
+    locations = top_10['country']; values = top_10['value']
+    fig = go.Figure([go.Bar(x=values, y=locations, orientation='h', marker=dict(color=values,colorscale='Blues',showscale=False), text=[fmt(v) for v in values], textposition='outside', hovertemplate='<b>%{y}</b><br>%{x:,.0f}<extra></extra>')])
+    fig.update_layout(margin=dict(l=150,r=50,t=20,b=40), height=400, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'], xaxis=dict(showgrid=True,gridcolor=config.COLORS['grid'],tickformat=','), yaxis=dict(showgrid=False, autorange='reversed'), font=dict(size=11))
+    return dcc.Graph(figure=fig, config={'displayModeBar':False})
+# ========================================================================
+# >>>>> FIN CALLBACK MODIFICADO <<<<<
+# ========================================================================
 
 
 @app.callback(
     Output('comparison-chart', 'children'),
-    [Input('country-select', 'value'),
-     Input('compare-countries', 'value'),
-     Input('trend-metric-select', 'value'),
-     Input('date-range', 'start_date'),
-     Input('date-range', 'end_date')]
+    [Input('comparison-metric-selector', 'value'),
+     Input('comparison-locations-selector', 'value')]
 )
-def update_comparison(main_country: Optional[str], compare_countries: Optional[List[str]],
-                      selected_metric: Optional[str], start_date: Optional[str],
-                      end_date: Optional[str]) -> Union[dcc.Graph, html.Div]:
-    """Actualiza gráfico de comparación."""
-    logger.info(f"Callback: update_comparison (main={main_country}, compare={compare_countries})")
+def update_comparison_chart(metric, locations):
+    if not metric:
+        logger.warning("Callback update_comparison_chart: Métrica no seleccionada.")
+        return html.Div("⚠️ Selecciona una métrica", style={'textAlign':'center','padding':'40px'})
+    if not locations:
+        logger.warning("Callback update_comparison_chart: Países no seleccionados.")
+        return html.Div("⚠️ Selecciona al menos 1 país", style={'textAlign':'center','padding':'40px'})
 
-    if not main_country:
-        main_country = config.DEFAULT_COUNTRY
-    if not compare_countries:
-        compare_countries = []
-    if not selected_metric:
-        selected_metric = 'new_cases_smoothed'
+    logger.debug(f"Actualizando gráfico de comparación. Métrica: {metric}, Países: {locations}")
 
-    all_countries = list(dict.fromkeys([main_country] + compare_countries))[:config.MAX_COMPARE_COUNTRIES + 1]
+    data = api.compare_countries(countries=locations, metric=metric, normalize=False)
 
-    if len(all_countries) < 2:
-        return html.Div("📊 Selecciona al menos un país adicional para comparar.", style={
-            'textAlign': 'center',
-            'paddingTop': '120px',
-            'color': config.COLORS['text_secondary'],
-            'fontSize': '14px'
-        })
+    if not data or isinstance(data, dict) and data.get("error"):
+        error_msg = data.get("error", "Error desconocido") if isinstance(data, dict) else "Error desconocido"
+        logger.error(f"Error API en compare_countries: {error_msg}")
+        return html.Div(f"⚠️ Error al obtener datos de comparación: {error_msg}", style={'textAlign': 'center', 'padding': '40px', 'color': config.COLORS['accent_red']})
 
-    data = api.compare_countries(all_countries, selected_metric, start_date, end_date)
+    if 'data' not in data:
+        logger.error(f"Respuesta inesperada de API /compare: {data}")
+        return html.Div("⚠️ Respuesta inesperada de la API para comparación", style={'textAlign': 'center', 'padding': '40px'})
 
-    if not data or not data.get('data'):
-        return html.Div(f"🔄 No hay datos de comparación para '{get_metric_name(selected_metric)}'.", style={
-            'textAlign': 'center',
-            'paddingTop': '120px',
-            'color': config.COLORS['text_secondary'],
-            'fontSize': '14px'
-        })
+    comparison = data['data']
+    if not comparison:
+        logger.warning("Callback update_comparison_chart: API devolvió datos vacíos.")
+        return html.Div("⚠️ Sin datos para comparar (posiblemente países no encontrados o métrica sin datos)", style={'textAlign':'center','padding':'40px'})
 
     fig = go.Figure()
-    colors = [
-        config.COLORS['accent_blue'],
-        config.COLORS['accent_green'],
-        config.COLORS['accent_yellow'],
-        config.COLORS['accent_red'],
-        config.COLORS['accent_purple'],
-        '#17a2b8', # Teal
-        '#fd7e14'  # Orange
-    ]
+    colors = [config.COLORS['accent_blue'], config.COLORS['accent_red'], config.COLORS['accent_green'], config.COLORS['accent_yellow'], config.COLORS['accent_purple'], config.COLORS['accent_teal']]
 
-    try:
-        dates = [d['date'] for d in data['data']]
-        for i, country in enumerate(data.get('countries', [])):
-            values = [d.get('values', {}).get(country, 0) or 0 for d in data['data']] # Manejo de None o 0
-            fig.add_trace(go.Scatter(
-                x=dates,
-                y=values,
-                mode='lines',
-                name=country,
-                line=dict(color=colors[i % len(colors)], width=2),
-                hovertemplate=f"<b>{country}</b><br>%{{x}}<br>{get_metric_name(selected_metric)}: %{{y:,.0f}}<extra></extra>"
+    valid_data_found = False
+    for i, item in enumerate(comparison):
+        location = item.get('location', 'N/A')
+        value_key = 'value'
+        value = item.get(value_key)
+        if value is not None:
+             valid_data_found = True
+             fig.add_trace(go.Bar(
+                 x=[location],
+                 y=[value],
+                 name=location,
+                 marker_color=colors[i%len(colors)],
+                 text=fmt(value),
+                 textposition='outside',
+                 hovertemplate=f'<b>{location}</b><br>{config.METRICS.get(metric, metric)}: %{{y:,.2f}}<extra></extra>'
             ))
-    except (KeyError, TypeError, IndexError) as e:
-        logger.error(f"Error procesando datos comparación: {e}")
-        return html.Div("❌ Error procesando datos de comparación.", style={
-            'textAlign': 'center',
-            'paddingTop': '120px',
-            'color': config.COLORS['accent_red'],
-            'fontSize': '14px'
-        })
+        else:
+            logger.warning(f"Valor nulo para {metric} en {location} durante comparación.")
 
-    metric_title = get_metric_name(selected_metric)
-    subtitle = metric_title + (" - Promedio Móvil 7 Días" if "smoothed" in selected_metric else "")
+    if not valid_data_found:
+        logger.warning("Callback update_comparison_chart: No se encontraron datos válidos para graficar.")
+        return html.Div("⚠️ No se encontraron datos válidos para la métrica y países seleccionados.", style={'textAlign':'center','padding':'40px'})
 
     fig.update_layout(
-        title=dict(
-            text=f"<b>COMPARACIÓN: {metric_title.upper()}</b><br><span style='font-size:11px;color:{config.COLORS['text_secondary']}'>{subtitle}</span>",
-            x=0.5,
-            y=0.95,
-            xanchor='center',
-            yanchor='top',
-            font=dict(size=14, color=config.COLORS['text_primary'])
-        ),
-        xaxis=dict(
-            showgrid=True,
-            gridcolor=config.COLORS['grid'],
-            showline=False,
-            tickfont=dict(size=10, color=config.COLORS['text_secondary'])
-        ),
-        yaxis=dict(
-            showgrid=True,
-            gridcolor=config.COLORS['grid'],
-            showline=False,
-            tickfont=dict(size=10, color=config.COLORS['text_secondary']),
-            tickformat=','
-        ),
-        plot_bgcolor=config.COLORS['bg_card'],
-        paper_bgcolor=config.COLORS['bg_card'],
-        margin=dict(t=65, r=20, b=40, l=60),
-        height=310, # Ajustado para que quepa bien
-        hovermode='x unified',
-        legend=dict(
-            orientation='h',
-            yanchor='bottom',
-            y=-0.4, # Ajustado para dar espacio
-            xanchor='center',
-            x=0.5,
-            font=dict(size=10, color=config.COLORS['text_secondary']),
-            bgcolor='rgba(255,255,255,0.8)' # Fondo semi-transparente
-        ),
-        font=dict(color=config.COLORS['text_primary'])
+        title=dict(text=f"<b>Comparación: {config.METRICS.get(metric, metric)}</b>",x=0.5,xanchor='center',font=dict(size=14)),
+        margin=dict(l=60,r=30,t=50,b=40), height=450,
+        paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'],
+        xaxis=dict(showgrid=False),
+        yaxis=dict(showgrid=True,gridcolor=config.COLORS['grid'],tickformat=','),
+        legend=dict(orientation='h',yanchor='bottom',y=-0.25,xanchor='center',x=0.5, traceorder='reversed'),
+        font=dict(size=11),
+        barmode='group'
     )
+    return dcc.Graph(figure=fig, config={'displayModeBar':False})
 
-    return dcc.Graph(figure=fig, config={'displayModeBar': False}, style={'height': '100%'})
+@app.callback(
+    Output('statistics-display', 'children'),
+    [Input('stats-metric-selector', 'value'),
+     Input('stats-include-outliers', 'value')]
+)
+def update_statistics(metric, include_outliers):
+    if not metric: return no_update
+    include_outliers_flag = len(include_outliers) > 0
+    data = api.get_statistical_summary(metric=metric, include_outliers=include_outliers_flag)
+
+    if not data or isinstance(data, dict) and data.get("error"):
+        error_msg = data.get("error", "Error desconocido") if isinstance(data, dict) else "Error desconocido"
+        return html.Div(f"⚠️ No hay datos estadísticos: {error_msg}", style={'textAlign':'center','padding':'40px'})
+
+    if 'statistics' not in data:
+         return html.Div(f"⚠️ Respuesta inesperada de API para estadísticas: {data}", style={'textAlign':'center','padding':'40px'})
+
+    statistics = data['statistics']
+    if not statistics or 'global' not in statistics: return html.Div("⚠️ Sin datos globales", style={'textAlign':'center','padding':'40px'})
+
+    stats = statistics['global']
+    card = html.Div([
+        html.Div([
+             html.Div([html.Span("Media: ",style={'color':config.COLORS['text_secondary'],'fontSize':'11px'}),html.Span(fmt(stats.get('mean')),style={'fontWeight':'600','fontSize':'12px'})],style={'marginBottom':'5px'}),
+             html.Div([html.Span("Mediana: ",style={'color':config.COLORS['text_secondary'],'fontSize':'11px'}),html.Span(fmt(stats.get('median')),style={'fontWeight':'600','fontSize':'12px'})],style={'marginBottom':'5px'}),
+             html.Div([html.Span("Desv. Std: ",style={'color':config.COLORS['text_secondary'],'fontSize':'11px'}),html.Span(fmt(stats.get('std')),style={'fontWeight':'600','fontSize':'12px'})],style={'marginBottom':'5px'}),
+             html.Div([html.Span("Mín: ",style={'color':config.COLORS['text_secondary'],'fontSize':'11px'}),html.Span(fmt(stats.get('min')),style={'fontWeight':'600','fontSize':'12px'})],style={'marginBottom':'5px'}),
+             html.Div([html.Span("Máx: ",style={'color':config.COLORS['text_secondary'],'fontSize':'11px'}),html.Span(fmt(stats.get('max')),style={'fontWeight':'600','fontSize':'12px'})],style={'marginBottom':'5px'}),
+             html.Div([html.Span("Q1 (25%): ",style={'color':config.COLORS['text_secondary'],'fontSize':'11px'}),html.Span(fmt(stats.get('q25')),style={'fontWeight':'600','fontSize':'12px'})],style={'marginBottom':'5px'}),
+             html.Div([html.Span("Q3 (75%): ",style={'color':config.COLORS['text_secondary'],'fontSize':'11px'}),html.Span(fmt(stats.get('q75')),style={'fontWeight':'600','fontSize':'12px'})],style={'marginBottom':'5px'}),
+             html.Div([html.Span("N (Países): ",style={'color':config.COLORS['text_secondary'],'fontSize':'11px'}),html.Span(str(stats.get('count',0)),style={'fontWeight':'600','fontSize':'12px'})])
+        ])
+    ], style={**get_card_style('15px'), 'marginRight':'15px', 'marginBottom':'15px'})
+    return card
+
+@app.callback(
+    Output('correlation-matrix-heatmap', 'children'),
+    [Input('correlation-metrics-selector', 'value'),
+     Input('correlation-method', 'value')]
+)
+def update_correlations(metrics, method):
+    if not metrics or len(metrics) < 2: return html.Div("⚠️ Selecciona >= 2 métricas", style={'textAlign':'center','padding':'40px'})
+
+    logger.debug(f"Actualizando matriz de correlación. Métricas: {metrics}, Método: {method}")
+    data = api.get_correlations(metrics=metrics, method=method)
+
+    if not data or isinstance(data, dict) and data.get("error"):
+        error_msg = data.get("error", "Error desconocido") if isinstance(data, dict) else "Error desconocido"
+        logger.error(f"Error API en get_correlations: {error_msg}")
+        return html.Div(f"⚠️ No hay datos de correlación: {error_msg}", style={'textAlign':'center','padding':'40px'})
+
+    if 'correlation_matrix' not in data:
+        logger.error(f"Respuesta inesperada de API para correlaciones: {data}")
+        return html.Div(f"⚠️ Respuesta inesperada de API para correlaciones: {data}", style={'textAlign':'center','padding':'40px'})
+
+    corr_matrix = data['correlation_matrix']
+    if not corr_matrix:
+        logger.warning("Callback update_correlations: Matriz de correlación vacía.")
+        return html.Div("⚠️ No se pudo calcular la matriz de correlación (datos insuficientes?).", style={'textAlign':'center','padding':'40px'})
+
+    metric_names = [config.METRICS.get(m, m) for m in metrics]
+    z_values = []
+
+    for m1 in metrics:
+        row = []
+        inner_dict = corr_matrix.get(m1, {})
+        for m2 in metrics:
+            value = inner_dict.get(m2, None)
+            row.append(value)
+        z_values.append(row)
+
+    fig_heatmap = go.Figure(data=go.Heatmap(z=z_values, x=metric_names, y=metric_names, colorscale='RdBu', zmid=0,
+    text=[[f"{val:.2f}" if val is not None else "N/A" for val in row] for row in z_values],
+    texttemplate='%{text}', textfont={"size":12}, colorbar=dict(title="Corr.")))
+    fig_heatmap.update_layout(title=dict(text=f"<b>Matriz de Correlación Global ({method.title()})</b>",x=0.5,xanchor='center',font=dict(size=14)), margin=dict(l=100,r=50,t=50,b=100), height=400, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'], xaxis=dict(tickangle=-45), font=dict(size=11))
+    return dcc.Graph(figure=fig_heatmap, config={'displayModeBar':False})
 
 
-# ============================================================================
-# UTILIDADES
-# ============================================================================
+# --- CALLBACK DE GRÁFICO DE LÍNEAS ---
+@app.callback(
+    Output('timeseries-line-chart', 'figure'),
+    [Input('ts-country-selector', 'value'),
+     Input('ts-metrics-selector', 'value'),
+     Input('ts-date-picker', 'start_date'),
+     Input('ts-date-picker', 'end_date'),
+     Input('ts-log-scale', 'value')]
+)
+def update_timeseries_chart(country, metrics, start_date, end_date, log_scale):
+    """Actualiza el gráfico de líneas de evolución basado en la selección."""
 
-def fmt(num: Optional[Union[float, int, str]]) -> str:
-    """Formatea números para visualización (K, M, B)."""
-    if num is None:
-        return '0'
+    triggered_id = callback_context.triggered_id
+    logger.debug(f"Update TS chart triggered by: {triggered_id}")
+
+    # Si el país es None, mostrar mensaje inicial
+    if country is None:
+        logger.warning("Callback update_timeseries_chart: País es None.")
+        fig_empty = go.Figure()
+        fig_empty.update_layout(height=450, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'], annotations=[dict(text="Cargando país...", showarrow=False)])
+        return fig_empty
+
+    # Si no hay métricas seleccionadas
+    if not metrics:
+        logger.warning(f"Callback update_timeseries_chart (País: {country}): Métricas no seleccionadas.")
+        fig_empty = go.Figure()
+        fig_empty.update_layout(height=450, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'], annotations=[dict(text="Selecciona al menos una métrica", showarrow=False)])
+        return fig_empty
+
+    logger.debug(f"Actualizando gráfico TS. País: {country}, Métricas: {metrics}, Fechas: {start_date}-{end_date}, Log: {log_scale}")
+
+    # --- Cargar datos ---
+    data = api.get_country_timeseries_all(country)
+
+    if not data or isinstance(data, dict) and data.get("error"):
+        error_msg = data.get("error", "Error desconocido") if isinstance(data, dict) else "Error desconocido"
+        logger.error(f"Error API en get_country_timeseries_all para {country}: {error_msg}")
+        fig_empty = go.Figure()
+        fig_empty.update_layout(height=450, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'], annotations=[dict(text=f"No se pudieron cargar datos para {country}: {error_msg}", showarrow=False)])
+        return fig_empty
+
+    if 'data' not in data:
+         logger.error(f"Respuesta inesperada de API para TS de {country}: {data}")
+         fig_empty = go.Figure()
+         fig_empty.update_layout(height=450, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'], annotations=[dict(text=f"Respuesta inesperada de API para {country}", showarrow=False)])
+         return fig_empty
+
+    # --- Procesar DataFrame ---
     try:
-        num = float(num)
-        if abs(num) >= 1_000_000_000:
-            return f"{num/1_000_000_000:.1f}B"
-        if abs(num) >= 1_000_000:
-            return f"{num/1_000_000:.1f}M"
-        elif abs(num) >= 10_000: # Mostrar sin decimales para miles altos
-            return f"{num/1_000:.0f}K"
-        elif abs(num) >= 1_000:
-            return f"{num/1_000:.1f}K"
-        elif abs(num) < 10 and not num.is_integer(): # Mostrar decimales para números pequeños
-             return f"{num:.2f}"
-        return f"{int(num):,}" # Formato con comas para miles
-    except (ValueError, TypeError):
-        return 'N/A'
+        df = pd.DataFrame(data['data'])
+        if df.empty: raise ValueError("DataFrame vacío después de cargar")
 
+        df['date'] = pd.to_datetime(df['date'], errors='coerce')
+        df = df.dropna(subset=['date'])
+        df = df.sort_values(by='date')
 
-def get_metric_name(metric: str) -> str:
-    """Retorna nombre legible de métrica."""
-    names = {
-        'total_cases': 'Casos Totales',
-        'new_cases': 'Nuevos Casos',
-        'new_cases_smoothed': 'Nuevos Casos (Prom. 7 días)',
-        'total_deaths': 'Muertes Totales',
-        'new_deaths': 'Nuevas Muertes',
-        'new_deaths_smoothed': 'Nuevas Muertes (Prom. 7 días)',
-        'people_fully_vaccinated': 'Personas Completamente Vacunadas',
-        'vaccination_rate': 'Tasa de Vacunación Completa (%)',
-        'mortality_rate': 'Tasa de Mortalidad (%)'
-        # Añade más si es necesario
-    }
-    return names.get(metric, metric.replace('_', ' ').title())
+        # Filtrar por fecha
+        mask = (df['date'] >= pd.to_datetime(start_date)) & (df['date'] <= pd.to_datetime(end_date))
+        df = df.loc[mask]
+        if df.empty: raise ValueError("DataFrame vacío después de filtrar fecha")
 
+    except Exception as e:
+        logger.error(f"Error procesando DataFrame o filtrando fechas para {country}: {e}")
+        fig_empty = go.Figure()
+        fig_empty.update_layout(height=450, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'], annotations=[dict(text=f"Error procesando datos o sin datos en el rango para {country}", showarrow=False)])
+        return fig_empty
 
-def create_aggregate_table(data: Dict[str, Any]) -> html.Div:
-    """Crea tabla HTML para métricas agregadas (continentes/regiones)."""
-    if not data:
-        return html.Div("No hay datos disponibles.", style={
-            'fontSize': '11px',
-            'color': config.COLORS['text_secondary']
-        })
+    # --- Crear Figura ---
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    colors = [config.COLORS['accent_blue'], config.COLORS['accent_red'], config.COLORS['accent_green'],
+              config.COLORS['accent_yellow'], config.COLORS['accent_purple'], config.COLORS['accent_teal']]
+    has_primary_axis = False
+    has_secondary_axis = False
+    valid_traces_added = False
 
-    header = [html.Thead(html.Tr([
-        html.Th("Ubicación"),
-        html.Th("Casos", style={'textAlign': 'right'}),
-        html.Th("Muertes", style={'textAlign': 'right'}),
-    ]))]
-
-    rows = []
-    for location, metrics in data.items():
-        if not isinstance(metrics, dict): # Seguridad extra
+    # --- Añadir Trazas ---
+    for i, metric in enumerate(metrics):
+        if metric not in df.columns or not pd.api.types.is_numeric_dtype(df[metric]) or df[metric].isnull().all():
+            logger.warning(f"Métrica '{metric}' no encontrada, no numérica o sin datos válidos para {country}.")
             continue
-        rows.append(html.Tr([
-            html.Td(location),
-            html.Td(fmt(metrics.get('total_cases')), style={'color': config.COLORS['accent_blue']}),
-            html.Td(fmt(metrics.get('total_deaths')), style={'color': config.COLORS['accent_red']}),
-        ]))
 
-    body = [html.Tbody(rows)]
+        color = colors[i % len(colors)]
+        metric_name = config.METRICS.get(metric, metric)
+        is_secondary = metric in config.SECONDARY_AXIS_METRICS
+        if is_secondary: has_secondary_axis = True
+        else: has_primary_axis = True
+        valid_traces_added = True
 
-    return html.Div(
-        html.Table(header + body, className="metric-table"),
-        className="metric-table-container" # Clase para aplicar scroll si es necesario
+        # Gráfico Combinado: Casos
+        if metric == 'new_cases_smoothed' and 'new_cases' in df.columns and pd.api.types.is_numeric_dtype(df['new_cases']) and not df['new_cases'].isnull().all():
+            fig.add_trace(go.Bar(x=df['date'], y=df['new_cases'], name=config.METRICS.get('new_cases'), marker_color=color, opacity=0.3, hovertemplate=f"<b>{config.METRICS.get('new_cases')}</b><br>%{{x|%Y-%m-%d}}<br>Valor: %{{y:,.0f}}<extra></extra>"), secondary_y=False)
+            fig.add_trace(go.Scatter(x=df['date'], y=df[metric], name=metric_name, line=dict(color=color, width=2.5), hovertemplate=f"<b>{metric_name}</b><br>%{{x|%Y-%m-%d}}<br>Valor: %{{y:,.1f}}<extra></extra>"), secondary_y=False)
+        # Gráfico Combinado: Muertes
+        elif metric == 'new_deaths_smoothed' and 'new_deaths' in df.columns and pd.api.types.is_numeric_dtype(df['new_deaths']) and not df['new_deaths'].isnull().all():
+            fig.add_trace(go.Bar(x=df['date'], y=df['new_deaths'], name=config.METRICS.get('new_deaths'), marker_color=color, opacity=0.3, hovertemplate=f"<b>{config.METRICS.get('new_deaths')}</b><br>%{{x|%Y-%m-%d}}<br>Valor: %{{y:,.0f}}<extra></extra>"), secondary_y=False)
+            fig.add_trace(go.Scatter(x=df['date'], y=df[metric], name=metric_name, line=dict(color=color, width=2.5), hovertemplate=f"<b>{metric_name}</b><br>%{{x|%Y-%m-%d}}<br>Valor: %{{y:,.1f}}<extra></extra>"), secondary_y=False)
+        # Ignorar 'raw' si 'smoothed' está seleccionado
+        elif not ((metric == 'new_cases' and 'new_cases_smoothed' in metrics) or \
+                  (metric == 'new_deaths' and 'new_deaths_smoothed' in metrics)):
+            fig.add_trace(go.Scatter(x=df['date'], y=df[metric], name=metric_name, line=dict(color=color, width=2.5), hovertemplate=f"<b>{metric_name}</b><br>%{{x|%Y-%m-%d}}<br>Valor: %{{y:,.2f}}<extra></extra>"), secondary_y=is_secondary)
+
+    if not valid_traces_added:
+        logger.warning(f"Callback update_timeseries_chart (País: {country}): No se añadieron trazas válidas.")
+        fig_empty = go.Figure()
+        fig_empty.update_layout(height=450, paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'], annotations=[dict(text=f"No hay datos válidos para las métricas seleccionadas en {country}", showarrow=False)])
+        return fig_empty
+
+    # --- Estilizar Figura ---
+    yaxis_type = 'log' if log_scale else 'linear'
+    fig.update_layout(
+        title=dict(text=f"<b>Evolución en {country}</b>", x=0.5, xanchor='center', font=dict(size=14)),
+        margin=dict(l=60, r=40, t=50, b=40), height=450,
+        paper_bgcolor=config.COLORS['bg_card'], plot_bgcolor=config.COLORS['bg_card'],
+        xaxis=dict(showgrid=True, gridcolor=config.COLORS['grid']),
+        legend=dict(orientation='h', yanchor='bottom', y=-0.3, xanchor='center', x=0.5),
+        font=dict(size=11), hovermode='x unified', barmode='overlay'
     )
+    fig.update_yaxes(type=yaxis_type, secondary_y=False, title_standoff = 5)
+    fig.update_yaxes(type=yaxis_type, secondary_y=True, title_standoff = 10)
+    fig.update_yaxes(title_text="Conteo / Personas", showgrid=True, gridcolor=config.COLORS['grid'], secondary_y=False, visible=has_primary_axis)
+    fig.update_yaxes(title_text="Tasa / Índice (%)", showgrid=False, secondary_y=True, visible=has_secondary_axis)
+
+    return fig
+
+
+# --- CALLBACKS DE DESCARGA (Sin cambios) ---
+@app.callback(
+    Output("download-timeseries-csv", "data"),
+    Input("btn-download-ts", "n_clicks"),
+    [State('ts-country-selector', 'value'),
+     State('ts-metrics-selector', 'value'),
+     State('ts-date-picker', 'start_date'),
+     State('ts-date-picker', 'end_date')],
+    prevent_initial_call=True,
+)
+def download_timeseries_data(n_clicks, country, metrics, start_date, end_date):
+    if not country or not metrics:
+        return no_update
+
+    data = api.get_country_timeseries_all(country)
+    if not data or 'data' not in data:
+        return no_update
+
+    df = pd.DataFrame(data['data'])
+    df['date'] = pd.to_datetime(df['date'])
+
+    if start_date:
+        df = df[df['date'] >= pd.to_datetime(start_date)]
+    if end_date:
+        df = df[df['date'] <= pd.to_datetime(end_date)]
+
+    download_metrics = list(metrics)
+    if 'new_cases_smoothed' in metrics and 'new_cases' not in download_metrics:
+        download_metrics.append('new_cases')
+    if 'new_deaths_smoothed' in metrics and 'new_deaths' not in download_metrics:
+        download_metrics.append('new_deaths')
+
+    cols_to_keep = ['date', 'iso_code', 'location'] + download_metrics
+    df_filtered = df[[c for c in cols_to_keep if c in df.columns]]
+
+    filename = f"timeseries_{country}_{start_date}_to_{end_date}.csv"
+    return dcc.send_data_frame(df_filtered.to_csv, filename, index=False)
+
+@app.callback(
+    Output("download-comparison-csv", "data"),
+    Input("btn-download-comp", "n_clicks"),
+    [State('comparison-metric-selector', 'value'),
+     State('comparison-locations-selector', 'value')],
+    prevent_initial_call=True,
+)
+def download_comparison_data(n_clicks, metric, locations):
+    if not metric or not locations:
+        return no_update
+
+    data = api.compare_countries(countries=locations, metric=metric, normalize=False)
+
+    if not data or 'data' not in data:
+        return no_update
+
+    df = pd.DataFrame(data['data'])
+    filename = f"comparison_{metric}_raw.csv"
+    return dcc.send_data_frame(df.to_csv, filename, index=False)
+
+# --- Utilidad fmt (Sin cambios) ---
+def fmt(num: Optional[Union[float, int, str]]) -> str:
+    if num is None: return 'N/A';
+    try: num = float(num)
+    except (ValueError,TypeError,AttributeError): return 'N/A'
+    if abs(num)>=1e9: return f"{num/1e9:.1f}B";
+    if abs(num)>=1e6: return f"{num/1e6:.1f}M";
+    if abs(num)>=1e4: return f"{num/1e3:.0f}K";
+    if abs(num)>=1e3: return f"{num/1e3:.1f}K";
+    try:
+      if not pd.isna(num) and num != float('inf') and num != float('-inf'):
+          if float(num).is_integer():
+              return f"{int(num):,}"
+          else:
+             if abs(num) < 0.01 and num != 0: return f"{num:.4f}"
+             if abs(num) < 1: return f"{num:.3f}"
+             if abs(num) < 10: return f"{num:.2f}"
+             return f"{num:,.1f}"
+      else:
+            return 'N/A'
+    except Exception as e:
+        logger.error(f"Error en función fmt con número {num}: {e}")
+        return str(num)
 
 
 # ============================================================================
 # MAIN
 # ============================================================================
-
 if __name__ == '__main__':
-    print("\n" + "=" * 70)
-    print(f"🚀 Iniciando Panel COVID-19 v4.0")
-    print(f"API URL: {config.API_BASE_URL}")
-    print(f"API Key: {'Configurada ✅' if config.API_KEY else 'No configurada ⚠️'}")
-    print("=" * 70)
-    print(f"\n🌍 Dashboard disponible en: http://127.0.0.1:8050")
-    print(f"💡 Asegúrate de que la API esté corriendo en: {config.API_BASE_URL}")
-    print("\n⏳ Presiona CTRL+C para detener el servidor")
-    print("=" * 70 + "\n")
-
-    try:
-        # debug=True es útil para desarrollo, considera quitarlo para producción real
-        app.run(debug=True, host='127.0.0.1', port=8050)
-    except KeyboardInterrupt:
-        print("\n✅ Servidor del dashboard detenido por el usuario.")
+    print("\n" + "="*70); print(f"🚀 Iniciando Panel COVID-19 (Países) v6.5 (Callback Corregido)"); print(f"API URL: {config.API_BASE_URL}"); print("="*70)
+    print(f"\n🌍 Dashboard: http://127.0.0.1:8050"); print(f"💡 API debe estar en: {config.API_BASE_URL}")
+    print("\n✨ Funcionalidades: Vista General, Evolución (Doble Eje/Barras), Comparación, Estadísticas, Correlaciones.")
+    print("\n⏳ CTRL+C para detener"); print("="*70 + "\n")
+    try: app.run(debug=True, host='127.0.0.1', port=8050)
+    except KeyboardInterrupt: print("\n✅ Dashboard detenido.")
     except Exception as e:
-        logger.exception("❌ Error fatal al iniciar el dashboard")
-        print(f"❌ Error al iniciar el dashboard: {e}")
+        logger.exception("❌ Error fatal durante la ejecución")
+        print(f"❌ Error: {e}")

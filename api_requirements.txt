@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+gunicorn
+pandas
+numpy
+python-decouple
+redis
+slowapi

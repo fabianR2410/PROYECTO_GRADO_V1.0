@@ -2,9 +2,9 @@
 RESUMEN DE EJECUCIÓN - PIPELINE COVID-19 ETL
 ======================================================================
 Estado: ✅ EXITOSO
-Inicio: 2025-10-21 10:09:01.836726
-Fin: 2025-10-21 10:09:24.340199
-Duración: 22.50 segundos
+Inicio: 2025-10-22 19:12:34.211916
+Fin: 2025-10-22 19:12:50.725343
+Duración: 16.51 segundos
 
 --- ESTADÍSTICAS ---
 Datos crudos: 350,085 filas x 16 columnas
