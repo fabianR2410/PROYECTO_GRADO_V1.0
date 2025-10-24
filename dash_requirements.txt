@@ -1,6 +1,0 @@
-dash
-plotly
-requests
-python-decouple
-pandas
-gunicorn

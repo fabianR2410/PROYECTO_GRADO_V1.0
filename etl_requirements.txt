@@ -1,5 +1,0 @@
-pandas
-requests
-python-decouple
-numpy
-tenacity
